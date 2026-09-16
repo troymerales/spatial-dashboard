@@ -12,11 +12,16 @@ municipalities.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5180
+npm run dev          # http://localhost:5180
 npm run build
 npm run typecheck
-node scripts/check-data.mjs   # headless validation of the data layer
+npm run check-data   # headless validation of the data layer
+npm run catalogue    # regenerate CATALOGUE.md from src/data/*
 ```
+
+**[CATALOGUE.md](CATALOGUE.md)** lists every category and indicator, with units,
+denominators, direction, definitions and caveats. It is generated from the code,
+so it cannot drift.
 
 ---
 
@@ -35,6 +40,47 @@ Most of the design decisions below are about that.
 | **Compare** | Where do two problems land in the same place? | Whether high burden and weak service actually coincide |
 | **Screen** | Which areas cross thresholds *I* set? | Building a defensible shortlist for a programme |
 | **Access** | Which populations are physically far from care? | Siting, outreach scheduling, referral planning |
+
+### Timeline playback
+
+The data is **monthly**: 24 months, January 2024 to December 2025. A Play button and a
+scrubber under the map step the whole country through the months, and the LGU colours
+update as the period changes.
+
+Four rules the implementation holds to:
+
+- **Discrete steps, no interpolation.** The map holds each month then jumps to the next.
+  A value halfway between March and April does not exist; drawing one would be an invention.
+- **Fixed class breaks across the entire timeline.** Breaks are computed once over every
+  month in view (`Dataset.pooledValues`), never per frame — otherwise the palette would be
+  recalibrated on every step and an area could change shade while its value stood still.
+  The legend's *break values* stay put; its *counts* change month to month.
+- **Suppression is unchanged.** Monthly counts are smaller than annual ones, so more cells
+  fall under the disclosure threshold. Nothing was relaxed to make the animation look
+  better; the existing "too sparse at this level" guard catches it and offers the province
+  level.
+- **Scrubbing pauses playback**, so dragging never fights the timer.
+
+Dengue at province level is the clearest demonstration: 70 of 88 provinces sit in the top
+class in September and 0 in February, with the same breaks throughout.
+
+### Collapsing panels
+
+Three independent toggles in the top bar collapse the **controls** (left), the
+**analysis strip** (bottom) and the **area details** (right). Each icon shows the
+edge it controls, filled when that panel is open, so position and state read at a
+glance. Collapse all three and the map takes the whole workspace — roughly 3× the
+area — which is what you want for scanning the archipelago or projecting in a
+meeting.
+
+**Selecting an area reopens the detail panel**, because that panel exists to
+describe the selection. The controls and the strip are deliberately left exactly
+as you set them: reopening everything on every click would make separate toggles
+pointless. Clicking empty sea only clears the selection, so you can keep scanning
+without the chrome flickering in and out.
+
+The top bar never hides. It carries the view tabs and the synthetic-data
+disclosure, and that disclosure should not be dismissible.
 
 ---
 
@@ -74,7 +120,7 @@ metadata the map needs to render it *correctly*: denominator, direction
 (high = good or high = bad), decimals, disclosure threshold, and whether it is
 safe to map at all.
 
-**Five indicators are marked `mappable: false` on purpose.** A field existing at
+**Four indicators are marked `mappable: false` on purpose.** A field existing at
 LGU level is not a reason to paint it:
 
 - *Outpatient consultations (count)* and *Total population* — a raw-count
@@ -171,6 +217,15 @@ returns observations keyed by p-code plus summary statistics. To go live:
    an explicit `missing` reason. The UI's honesty features are driven entirely by
    those fields, so they start working on real data for free.
 3. Join on `pcode` (PSGC). Never on name — names collide and change.
+4. Bucket by month. A period is the integer `YYYYMM` (`202503` = March 2025); see
+   `src/data/periods.ts` for `toPeriod`, `addMonths` and the formatters. Date-level
+   consultation rows become periods with `toPeriod(year, month)` and nothing else in the
+   application needs to know where the months came from. Changing the timeline's range is
+   `TIMELINE_START` and `MONTHS` in that one file.
+5. Mark each indicator `temporal: 'flow' | 'stock'`. This is the only thing that decides
+   what gets divided into months — consultations and notifications are flows, coverage and
+   workforce ratios are stocks. Getting it wrong silently makes a rate twelve times too
+   big or too small.
 
 Province aggregation, classification, reliability flagging, suppression display
 and every chart carry over untouched.
@@ -255,8 +310,11 @@ end-to-end. Current output confirms:
 - mean 4.52 contiguous neighbours per municipality; 45 islands correctly have none
 - **province aggregates reconcile exactly** with their municipalities (max
   discrepancy 0.00) — drilling down never contradicts the level above
-- suppression bites where it should (leptospirosis 95%, maternal deaths 99% at
-  municipal level — both are rare-event measures)
+- suppression bites where it should, and harder on monthly counts than annual ones
+  (leptospirosis 100%, dengue 76% withheld at municipal level — both rare-event measures at
+  a monthly step; 0% withheld at province level, where pooling makes them readable)
+- seasonality is real and geographically phased: dengue swings 4.2x between its trough and
+  peak month, and provinces peak anywhere from July to November rather than all at once
 - indicators that share latent drivers genuinely co-vary, so the Compare view is
   meaningful (zero-dose ↔ facility births ρ = −0.59; utilisation ↔ physicians
   ρ = 0.64)
@@ -283,7 +341,10 @@ available in the test environment.
   population they serve — a municipality with the district hospital looks
   extremely well supplied and its neighbours extremely poorly supplied. The beds
   indicator carries this caveat on the map.
-- **Five annual periods only**, so trends cannot be separated from noise. The
-  sparkline says so.
+- **24 monthly periods**, which is enough to show two seasonal cycles but not enough to
+  separate a trend from noise. The sparkline says so.
+- **Seasonality is asserted, not inferred.** Each indicator's seasonal amplitude and peak
+  month are parameters in the catalogue, chosen to be plausible. With real data they would
+  come out of the data instead.
 - **No export.** CSV/PNG export of the current view is the most likely next ask.
 - **Bundle is ~1.4 MB** (390 KB gzipped), dominated by MapLibre.

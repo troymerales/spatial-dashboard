@@ -59,7 +59,7 @@ export function MethodSheet({ open, onClose }: { open: boolean; onClose: () => v
         <p>
           Independent random values per area would produce a map of noise that no interface could be
           judged against. Instead values are driven by smooth spatial fields — urbanicity,
-          remoteness, deprivation, service capacity, care-seeking — so the data reproduces the three
+          remoteness, deprivation, service capacity, care-seeking — so the data reproduces the four
           properties that actually stress a spatial health tool:
         </p>
         <ul>
@@ -77,7 +77,41 @@ export function MethodSheet({ open, onClose }: { open: boolean; onClose: () => v
             unstable rates — which is what lets suppression and reliability flagging be demonstrated
             honestly rather than mocked up.
           </li>
+          <li>
+            <strong>Month-to-month movement.</strong> Seasonality whose peak arrives at different
+            times in different places, so the monthly map shows a changing geographic pattern
+            rather than the whole country brightening at once.
+          </li>
         </ul>
+
+        <h4>Monthly time steps</h4>
+        <p>
+          The timeline runs monthly from January 2024 to December 2025. Playback steps whole
+          months and nothing is interpolated between them: a value halfway between March and April
+          does not exist, so drawing one would be an invention. Colours jump from one month's value
+          to the next.
+        </p>
+        <p>
+          <strong>Class breaks are fixed across the whole timeline</strong>, computed once over every
+          month in view rather than per frame. If they were recalculated each month the palette
+          would be recalibrated on every step and an area could change shade while its value stood
+          still. The consequence is intentional: in a low month most of the map is pale, and in a
+          peak month most of it is dark, because the colours mean the same thing throughout.
+        </p>
+        <p>
+          Flow measures — consultations, notifications, births — are defined per year in the
+          catalogue and divided into months. Stock measures — coverage, prevalence, workforce
+          ratios — are levels and are not divided. Monthly counts are necessarily smaller than
+          annual ones, so disclosure suppression bites harder: a rare condition that was readable
+          as an annual municipal rate may be almost entirely withheld monthly. The page says so and
+          offers the province level, where pooling makes the measure usable again.
+        </p>
+        <p>
+          Month-to-month movement comes from two things: seasonality whose peak arrives at
+          different times in different places, and a slow-drifting regional anomaly field. Neither
+          models disease transmission. Nothing travels from one area to a neighbour — it is
+          time-varying spatial structure, not diffusion, and it should not be read as spread.
+        </p>
 
         <h4>Aggregation</h4>
         <p>
@@ -93,7 +127,7 @@ export function MethodSheet({ open, onClose }: { open: boolean; onClose: () => v
           withheld and drawn in a distinct grey, never as zero. Barangay-level mapping is
           deliberately absent: at that granularity, a shaded polygon combined with a facility roster
           can identify individual patients, and for stigmatised conditions that harm is severe and
-          irreversible. Two indicators are excluded from mapping entirely for the same reason.
+          irreversible. Four indicators are excluded from mapping entirely, two of them for this reason.
         </p>
 
         <h4>What the page does not have</h4>

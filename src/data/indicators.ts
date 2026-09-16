@@ -100,7 +100,7 @@ export const INDICATORS: Indicator[] = [
       'Primary-care outpatient consultations recorded in the period, per 1,000 residents. Neither high nor low is automatically good: high can mean good access or high morbidity, low can mean a healthy population or an unreachable one.',
     decimals: 0,
     minNumerator: 10,
-    gen: { base: 1450, spread: 0.42, loads: { serviceCapacity: 0.9, healthSeeking: 0.7, remoteness: -0.8 }, trend: 0.03, countBased: true, missingRate: 0.02 },
+    gen: { base: 1450, spread: 0.42, loads: { serviceCapacity: 0.9, healthSeeking: 0.7, remoteness: -0.8 }, trend: 0.03, countBased: true, missingRate: 0.02, temporal: 'flow', seasonAmp: 0.08, seasonPeak: 6, anomalyAmp: 0.12 },
   },
   {
     id: 'util_outpatient_count',
@@ -116,7 +116,7 @@ export const INDICATORS: Indicator[] = [
       'A choropleth of a raw count is a population map wearing a lab coat: the biggest LGUs always shade darkest. Use the per-1,000 rate for the map and read counts in the table when you need workload volume.',
     definition: 'Unadjusted number of outpatient consultations recorded in the period.',
     decimals: 0,
-    gen: { base: 1.45, spread: 0.42, loads: { serviceCapacity: 0.9, healthSeeking: 0.7, remoteness: -0.8 }, trend: 0.03, countBased: true },
+    gen: { base: 1.45, spread: 0.42, loads: { serviceCapacity: 0.9, healthSeeking: 0.7, remoteness: -0.8 }, trend: 0.03, countBased: true, temporal: 'flow', seasonAmp: 0.08, seasonPeak: 6, anomalyAmp: 0.12 },
   },
   {
     id: 'util_first_visit_share',
@@ -131,7 +131,7 @@ export const INDICATORS: Indicator[] = [
     definition:
       'Proportion of consultations that are a new episode rather than a follow-up. A very high share can indicate weak continuity of care.',
     decimals: 1,
-    gen: { base: 58, spread: 0.5, loads: { serviceCapacity: -0.6, remoteness: 0.7 }, trend: -0.01, countBased: true, exposure: 'population', exposureScale: 1.45 },
+    gen: { base: 58, spread: 0.5, loads: { serviceCapacity: -0.6, remoteness: 0.7 }, trend: -0.01, countBased: true, exposure: 'population', exposureScale: 1.45, exposureTemporal: 'flow', seasonAmp: 0.08, seasonPeak: 6, anomalyAmp: 0.10 },
   },
   {
     id: 'util_referral_rate',
@@ -147,7 +147,7 @@ export const INDICATORS: Indicator[] = [
       'Onward referrals to a higher-level facility per 1,000 residents. Very low rates in remote LGUs often mean referral is impractical, not that patients are well.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 61, spread: 0.55, loads: { serviceCapacity: -0.5, remoteness: -0.6 }, trend: 0.01, countBased: true },
+    gen: { base: 61, spread: 0.55, loads: { serviceCapacity: -0.5, remoteness: -0.6 }, trend: 0.01, countBased: true, temporal: 'flow', seasonAmp: 0.07, seasonPeak: 6, anomalyAmp: 0.14 },
   },
   {
     id: 'util_er_rate',
@@ -163,7 +163,7 @@ export const INDICATORS: Indicator[] = [
       'Emergency department presentations per 1,000 residents. Elevated rates alongside low outpatient rates can indicate primary care is not absorbing demand.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 78, spread: 0.5, loads: { urbanicity: 0.7, serviceCapacity: 0.4, deprivation: 0.5 }, trend: 0.02, countBased: true },
+    gen: { base: 78, spread: 0.5, loads: { urbanicity: 0.7, serviceCapacity: 0.4, deprivation: 0.5 }, trend: 0.02, countBased: true, temporal: 'flow', seasonAmp: 0.12, seasonPeak: 11, anomalyAmp: 0.16 },
   },
   {
     id: 'util_teleconsult_share',
@@ -177,7 +177,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Proportion of consultations delivered remotely.',
     decimals: 1,
-    gen: { base: 7.5, spread: 0.9, loads: { urbanicity: 1.1, remoteness: -0.5 }, trend: 0.12, countBased: false },
+    gen: { base: 7.5, spread: 0.9, loads: { urbanicity: 1.1, remoteness: -0.5 }, trend: 0.12, countBased: false, anomalyAmp: 0.10 },
   },
   {
     id: 'util_followup_adherence',
@@ -191,7 +191,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Proportion of scheduled follow-up appointments attended.',
     decimals: 1,
-    gen: { base: 71, spread: 0.45, loads: { remoteness: -0.8, deprivation: -0.6, healthSeeking: 0.7 }, trend: 0.01, countBased: false },
+    gen: { base: 71, spread: 0.45, loads: { remoteness: -0.8, deprivation: -0.6, healthSeeking: 0.7 }, trend: 0.01, countBased: false, anomalyAmp: 0.08 },
   },
 
   // ───────────────────────────── Maternal & child ─────────────────────────────
@@ -208,7 +208,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of pregnancies with at least four antenatal visits.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 79, spread: 0.55, loads: { remoteness: -1.0, deprivation: -0.8, serviceCapacity: 0.7 }, trend: 0.012, countBased: true, missingRate: 0.03 },
+    gen: { base: 79, spread: 0.55, loads: { remoteness: -1.0, deprivation: -0.8, serviceCapacity: 0.7 }, trend: 0.012, countBased: true, missingRate: 0.03, anomalyAmp: 0.08 },
   },
   {
     id: 'mch_facility_birth',
@@ -223,7 +223,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of live births delivered in a health facility.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 84, spread: 0.6, loads: { remoteness: -1.3, deprivation: -0.7, serviceCapacity: 0.8 }, trend: 0.015, countBased: true },
+    gen: { base: 84, spread: 0.6, loads: { remoteness: -1.3, deprivation: -0.7, serviceCapacity: 0.8 }, trend: 0.015, countBased: true, anomalyAmp: 0.08 },
   },
   {
     id: 'mch_skilled_attendant',
@@ -238,7 +238,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of live births attended by a doctor, nurse or midwife.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 88, spread: 0.55, loads: { remoteness: -1.2, deprivation: -0.6, serviceCapacity: 0.8 }, trend: 0.012, countBased: true },
+    gen: { base: 88, spread: 0.55, loads: { remoteness: -1.2, deprivation: -0.6, serviceCapacity: 0.8 }, trend: 0.012, countBased: true, anomalyAmp: 0.08 },
   },
   {
     id: 'mch_postpartum',
@@ -253,7 +253,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of mothers seen within three days of delivery.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 72, spread: 0.6, loads: { remoteness: -1.0, serviceCapacity: 0.7 }, trend: 0.01, countBased: true },
+    gen: { base: 72, spread: 0.6, loads: { remoteness: -1.0, serviceCapacity: 0.7 }, trend: 0.01, countBased: true, anomalyAmp: 0.10 },
   },
   {
     id: 'mch_teen_birth',
@@ -268,7 +268,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Births to women aged 15–19 per 1,000 women of reproductive age.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 24, spread: 0.6, loads: { deprivation: 1.0, healthSeeking: -0.5, urbanicity: -0.2 }, trend: -0.02, countBased: true },
+    gen: { base: 24, spread: 0.6, loads: { deprivation: 1.0, healthSeeking: -0.5, urbanicity: -0.2 }, trend: -0.02, countBased: true, temporal: 'flow', seasonAmp: 0.10, seasonPeak: 9, anomalyAmp: 0.14 },
   },
   {
     id: 'mch_lbw',
@@ -283,7 +283,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of live births under 2,500 g.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 9.2, spread: 0.5, loads: { deprivation: 0.9, remoteness: 0.4 }, trend: -0.01, countBased: true },
+    gen: { base: 9.2, spread: 0.5, loads: { deprivation: 0.9, remoteness: 0.4 }, trend: -0.01, countBased: true, anomalyAmp: 0.10 },
   },
   {
     id: 'mch_family_planning',
@@ -298,7 +298,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of women 15–49 using a modern family planning method.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 42, spread: 0.45, loads: { serviceCapacity: 0.7, remoteness: -0.7, healthSeeking: 0.6 }, trend: 0.015, countBased: true },
+    gen: { base: 42, spread: 0.45, loads: { serviceCapacity: 0.7, remoteness: -0.7, healthSeeking: 0.6 }, trend: 0.015, countBased: true, anomalyAmp: 0.07 },
   },
   {
     id: 'mch_maternal_deaths',
@@ -315,7 +315,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Deaths from maternal causes recorded in the period.',
     decimals: 0,
     minNumerator: 5,
-    gen: { base: 0.0012, spread: 0.7, loads: { remoteness: 0.9, deprivation: 0.8, serviceCapacity: -0.8 }, trend: -0.02, countBased: true, exposure: 'live_births' },
+    gen: { base: 0.0012, spread: 0.7, loads: { remoteness: 0.9, deprivation: 0.8, serviceCapacity: -0.8 }, trend: -0.02, countBased: true, exposure: 'live_births', anomalyAmp: 0.20 },
   },
 
   // ───────────────────────────── Immunisation ─────────────────────────────
@@ -332,7 +332,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children completing the routine schedule before their first birthday.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 76, spread: 0.6, loads: { remoteness: -1.1, serviceCapacity: 0.8, healthSeeking: 0.6 }, trend: 0.01, countBased: true, missingRate: 0.03 },
+    gen: { base: 76, spread: 0.6, loads: { remoteness: -1.1, serviceCapacity: 0.8, healthSeeking: 0.6 }, trend: 0.01, countBased: true, missingRate: 0.03, anomalyAmp: 0.10 },
   },
   {
     id: 'imm_measles',
@@ -347,7 +347,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children receiving the second measles dose. Sustained coverage below 95% permits outbreaks.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 74, spread: 0.65, loads: { remoteness: -1.1, serviceCapacity: 0.8, healthSeeking: 0.7 }, trend: 0.012, countBased: true },
+    gen: { base: 74, spread: 0.65, loads: { remoteness: -1.1, serviceCapacity: 0.8, healthSeeking: 0.7 }, trend: 0.012, countBased: true, anomalyAmp: 0.12 },
   },
   {
     id: 'imm_penta3',
@@ -362,7 +362,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of infants receiving three doses of pentavalent vaccine.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 81, spread: 0.55, loads: { remoteness: -1.0, serviceCapacity: 0.8 }, trend: 0.01, countBased: true },
+    gen: { base: 81, spread: 0.55, loads: { remoteness: -1.0, serviceCapacity: 0.8 }, trend: 0.01, countBased: true, anomalyAmp: 0.10 },
   },
   {
     id: 'imm_dropout',
@@ -378,7 +378,7 @@ export const INDICATORS: Indicator[] = [
       'Share of infants who start but do not complete the pentavalent series. Isolates follow-through from initial reach, which is the actionable part.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 8.5, spread: 0.7, loads: { remoteness: 0.9, deprivation: 0.6, serviceCapacity: -0.7 }, trend: -0.02, countBased: true, exposure: 'children_under_5', exposureScale: 0.21 },
+    gen: { base: 8.5, spread: 0.7, loads: { remoteness: 0.9, deprivation: 0.6, serviceCapacity: -0.7 }, trend: -0.02, countBased: true, exposure: 'children_under_5', exposureScale: 0.21, exposureTemporal: 'flow', anomalyAmp: 0.14 },
   },
   {
     id: 'imm_zero_dose',
@@ -393,7 +393,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children who have received no routine vaccine at all — the clearest marker of populations the system is not reaching.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 5.4, spread: 0.85, loads: { remoteness: 1.2, deprivation: 0.8, serviceCapacity: -0.9 }, trend: -0.03, countBased: true },
+    gen: { base: 5.4, spread: 0.85, loads: { remoteness: 1.2, deprivation: 0.8, serviceCapacity: -0.9 }, trend: -0.03, countBased: true, anomalyAmp: 0.14 },
   },
 
   // ───────────────────────────── Communicable ─────────────────────────────
@@ -411,7 +411,7 @@ export const INDICATORS: Indicator[] = [
       'Tuberculosis cases notified per 100,000 residents. Reads as burden *and* as detection effort — a low rate may mean good control or poor case-finding.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 420, spread: 0.5, loads: { deprivation: 0.9, urbanicity: 0.5, serviceCapacity: 0.4 }, trend: -0.01, countBased: true, missingRate: 0.02 },
+    gen: { base: 420, spread: 0.5, loads: { deprivation: 0.9, urbanicity: 0.5, serviceCapacity: 0.4 }, trend: -0.01, countBased: true, missingRate: 0.02, temporal: 'flow', seasonAmp: 0.10, seasonPeak: 2, anomalyAmp: 0.18 },
   },
   {
     id: 'com_tb_success',
@@ -426,7 +426,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of notified TB cases cured or completing treatment.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 86, spread: 0.4, loads: { serviceCapacity: 0.8, remoteness: -0.6 }, trend: 0.008, countBased: true, exposure: 'population', exposureScale: 0.0042 },
+    gen: { base: 86, spread: 0.4, loads: { serviceCapacity: 0.8, remoteness: -0.6 }, trend: 0.008, countBased: true, exposure: 'population', exposureScale: 0.0042, exposureTemporal: 'flow', anomalyAmp: 0.08 },
   },
   {
     id: 'com_dengue',
@@ -441,7 +441,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Reported dengue cases per 100,000 residents.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 210, spread: 0.85, loads: { urbanicity: 0.8, deprivation: 0.5 }, trend: 0.04, countBased: true },
+    gen: { base: 210, spread: 0.85, loads: { urbanicity: 0.8, deprivation: 0.5 }, trend: 0.04, countBased: true, temporal: 'flow', seasonAmp: 0.62, seasonPeak: 8, anomalyAmp: 0.45 },
   },
   {
     id: 'com_ari_under5',
@@ -456,7 +456,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Acute respiratory infection episodes per 1,000 children under five.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 265, spread: 0.5, loads: { deprivation: 0.8, urbanicity: 0.5 }, trend: 0.005, countBased: true },
+    gen: { base: 265, spread: 0.5, loads: { deprivation: 0.8, urbanicity: 0.5 }, trend: 0.005, countBased: true, temporal: 'flow', seasonAmp: 0.38, seasonPeak: 0, anomalyAmp: 0.22 },
   },
   {
     id: 'com_diarrhea_under5',
@@ -471,7 +471,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Diarrhoeal episodes per 1,000 children under five. Tracks closely with water and sanitation access.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 155, spread: 0.6, loads: { deprivation: 0.9, remoteness: 0.5, serviceCapacity: -0.3 }, trend: -0.01, countBased: true },
+    gen: { base: 155, spread: 0.6, loads: { deprivation: 0.9, remoteness: 0.5, serviceCapacity: -0.3 }, trend: -0.01, countBased: true, temporal: 'flow', seasonAmp: 0.32, seasonPeak: 6, anomalyAmp: 0.24 },
   },
   {
     id: 'com_leptospirosis',
@@ -486,7 +486,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Reported leptospirosis cases per 100,000 residents. Strongly seasonal and flood-driven.',
     decimals: 2,
     minNumerator: 10,
-    gen: { base: 6.5, spread: 1.0, loads: { deprivation: 0.7, urbanicity: 0.4 }, trend: 0.02, countBased: true },
+    gen: { base: 6.5, spread: 1.0, loads: { deprivation: 0.7, urbanicity: 0.4 }, trend: 0.02, countBased: true, temporal: 'flow', seasonAmp: 0.85, seasonPeak: 8, anomalyAmp: 0.50 },
   },
   {
     id: 'com_hiv_testing',
@@ -501,7 +501,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'HIV tests performed per 1,000 adults.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 31, spread: 0.8, loads: { urbanicity: 1.0, serviceCapacity: 0.7, remoteness: -0.7 }, trend: 0.06, countBased: true },
+    gen: { base: 31, spread: 0.8, loads: { urbanicity: 1.0, serviceCapacity: 0.7, remoteness: -0.7 }, trend: 0.06, countBased: true, temporal: 'flow', seasonAmp: 0.12, seasonPeak: 10, anomalyAmp: 0.18 },
   },
   {
     id: 'com_hiv_prevalence',
@@ -518,7 +518,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Estimated share of adults living with HIV.',
     decimals: 2,
     minNumerator: 25,
-    gen: { base: 0.16, spread: 0.9, loads: { urbanicity: 1.2 }, trend: 0.05, countBased: true, exposure: 'pop_15_plus' },
+    gen: { base: 0.16, spread: 0.9, loads: { urbanicity: 1.2 }, trend: 0.05, countBased: true, exposure: 'pop_15_plus', anomalyAmp: 0.06 },
   },
 
   // ───────────────────────────── NCD ─────────────────────────────
@@ -536,7 +536,7 @@ export const INDICATORS: Indicator[] = [
       'Share of adults with diagnosed hypertension. Depends heavily on screening intensity — compare against the screening coverage indicator before concluding anything about true burden.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 21.5, spread: 0.4, loads: { urbanicity: 0.5, serviceCapacity: 0.6, deprivation: 0.3 }, trend: 0.02, countBased: true, missingRate: 0.02 },
+    gen: { base: 21.5, spread: 0.4, loads: { urbanicity: 0.5, serviceCapacity: 0.6, deprivation: 0.3 }, trend: 0.02, countBased: true, missingRate: 0.02, anomalyAmp: 0.07 },
   },
   {
     id: 'ncd_hypertension_control',
@@ -551,7 +551,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of enrolled hypertensive patients whose most recent reading is at target.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 48, spread: 0.45, loads: { serviceCapacity: 0.9, remoteness: -0.7, deprivation: -0.5 }, trend: 0.02, countBased: true, exposure: 'pop_15_plus', exposureScale: 0.2 },
+    gen: { base: 48, spread: 0.45, loads: { serviceCapacity: 0.9, remoteness: -0.7, deprivation: -0.5 }, trend: 0.02, countBased: true, exposure: 'pop_15_plus', exposureScale: 0.2, anomalyAmp: 0.09 },
   },
   {
     id: 'ncd_diabetes_prev',
@@ -566,7 +566,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of adults with diagnosed diabetes.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 7.4, spread: 0.45, loads: { urbanicity: 0.7, serviceCapacity: 0.5 }, trend: 0.025, countBased: true },
+    gen: { base: 7.4, spread: 0.45, loads: { urbanicity: 0.7, serviceCapacity: 0.5 }, trend: 0.025, countBased: true, anomalyAmp: 0.07 },
   },
   {
     id: 'ncd_screening_coverage',
@@ -582,7 +582,7 @@ export const INDICATORS: Indicator[] = [
       'Share of adults screened in the period. The essential companion to any prevalence map: low prevalence with low screening means unknown, not healthy.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 34, spread: 0.6, loads: { serviceCapacity: 1.0, remoteness: -0.8 }, trend: 0.04, countBased: true },
+    gen: { base: 34, spread: 0.6, loads: { serviceCapacity: 1.0, remoteness: -0.8 }, trend: 0.04, countBased: true, anomalyAmp: 0.16 },
   },
   {
     id: 'ncd_cvd_admission',
@@ -597,7 +597,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Inpatient admissions for cardiovascular causes per 10,000 residents.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 38, spread: 0.5, loads: { urbanicity: 0.5, serviceCapacity: 0.6, deprivation: 0.4 }, trend: 0.02, countBased: true },
+    gen: { base: 38, spread: 0.5, loads: { urbanicity: 0.5, serviceCapacity: 0.6, deprivation: 0.4 }, trend: 0.02, countBased: true, temporal: 'flow', seasonAmp: 0.14, seasonPeak: 0, anomalyAmp: 0.16 },
   },
   {
     id: 'ncd_copd_asthma',
@@ -612,7 +612,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Consultations for COPD or asthma per 1,000 residents.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 26, spread: 0.55, loads: { urbanicity: 0.6, deprivation: 0.5 }, trend: 0.01, countBased: true },
+    gen: { base: 26, spread: 0.55, loads: { urbanicity: 0.6, deprivation: 0.5 }, trend: 0.01, countBased: true, temporal: 'flow', seasonAmp: 0.28, seasonPeak: 0, anomalyAmp: 0.18 },
   },
   {
     id: 'ncd_mental_health_contact',
@@ -628,7 +628,7 @@ export const INDICATORS: Indicator[] = [
       'Contacts with a mental health service per 1,000 residents. In most LGUs this measures service availability far more than it measures need.',
     decimals: 2,
     minNumerator: 10,
-    gen: { base: 4.2, spread: 1.0, loads: { urbanicity: 1.0, serviceCapacity: 1.1, remoteness: -0.8 }, trend: 0.07, countBased: true },
+    gen: { base: 4.2, spread: 1.0, loads: { urbanicity: 1.0, serviceCapacity: 1.1, remoteness: -0.8 }, trend: 0.07, countBased: true, temporal: 'flow', seasonAmp: 0.10, seasonPeak: 0, anomalyAmp: 0.20 },
   },
 
   // ───────────────────────────── Nutrition ─────────────────────────────
@@ -645,7 +645,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children under five below −2 SD height-for-age.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 24, spread: 0.5, loads: { deprivation: 1.1, remoteness: 0.6, serviceCapacity: -0.3 }, trend: -0.015, countBased: true, missingRate: 0.03 },
+    gen: { base: 24, spread: 0.5, loads: { deprivation: 1.1, remoteness: 0.6, serviceCapacity: -0.3 }, trend: -0.015, countBased: true, missingRate: 0.03, anomalyAmp: 0.05 },
   },
   {
     id: 'nut_wasting',
@@ -660,7 +660,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children under five below −2 SD weight-for-height. Responds faster than stunting, so it is the better early-warning signal.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 6.2, spread: 0.6, loads: { deprivation: 1.0, remoteness: 0.5 }, trend: -0.01, countBased: true },
+    gen: { base: 6.2, spread: 0.6, loads: { deprivation: 1.0, remoteness: 0.5 }, trend: -0.01, countBased: true, seasonAmp: 0.16, seasonPeak: 7, anomalyAmp: 0.12 },
   },
   {
     id: 'nut_overweight_child',
@@ -675,7 +675,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children under five above +2 SD weight-for-height.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 4.1, spread: 0.6, loads: { urbanicity: 0.9, deprivation: -0.3 }, trend: 0.02, countBased: true },
+    gen: { base: 4.1, spread: 0.6, loads: { urbanicity: 0.9, deprivation: -0.3 }, trend: 0.02, countBased: true, anomalyAmp: 0.06 },
   },
   {
     id: 'nut_exclusive_bf',
@@ -690,7 +690,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of infants exclusively breastfed through six months.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 55, spread: 0.45, loads: { urbanicity: -0.5, healthSeeking: 0.6, serviceCapacity: 0.4 }, trend: 0.01, countBased: true, exposure: 'live_births' },
+    gen: { base: 55, spread: 0.45, loads: { urbanicity: -0.5, healthSeeking: 0.6, serviceCapacity: 0.4 }, trend: 0.01, countBased: true, exposure: 'live_births', anomalyAmp: 0.08 },
   },
   {
     id: 'nut_vitamin_a',
@@ -705,7 +705,7 @@ export const INDICATORS: Indicator[] = [
     definition: 'Share of children 6–59 months receiving supplementation in the period.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 82, spread: 0.5, loads: { serviceCapacity: 0.8, remoteness: -0.9 }, trend: 0.01, countBased: true },
+    gen: { base: 82, spread: 0.5, loads: { serviceCapacity: 0.8, remoteness: -0.9 }, trend: 0.01, countBased: true, anomalyAmp: 0.14 },
   },
 
   // ───────────────────────────── Workforce & facilities ─────────────────────────────
@@ -722,7 +722,7 @@ export const INDICATORS: Indicator[] = [
     definition:
       'Facilities of any type per 10,000 residents. Computed from the facility register rather than generated, so it is consistent with the Access view.',
     decimals: 2,
-    gen: { base: 1.6, spread: 0.5, loads: { serviceCapacity: 1.0 }, trend: 0.01, countBased: false },
+    gen: { base: 1.6, spread: 0.5, loads: { serviceCapacity: 1.0 }, trend: 0.01, countBased: false, anomalyAmp: 0 },
   },
   {
     id: 'wf_doctors_per_10k',
@@ -736,7 +736,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Physicians in public service per 10,000 residents.',
     decimals: 2,
-    gen: { base: 2.4, spread: 0.8, loads: { urbanicity: 1.1, serviceCapacity: 0.9, remoteness: -0.9 }, trend: 0.015, countBased: false },
+    gen: { base: 2.4, spread: 0.8, loads: { urbanicity: 1.1, serviceCapacity: 0.9, remoteness: -0.9 }, trend: 0.015, countBased: false, anomalyAmp: 0.05 },
   },
   {
     id: 'wf_nurses_per_10k',
@@ -750,7 +750,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Nurses in public service per 10,000 residents.',
     decimals: 2,
-    gen: { base: 5.8, spread: 0.65, loads: { urbanicity: 0.9, serviceCapacity: 0.9, remoteness: -0.8 }, trend: 0.015, countBased: false },
+    gen: { base: 5.8, spread: 0.65, loads: { urbanicity: 0.9, serviceCapacity: 0.9, remoteness: -0.8 }, trend: 0.015, countBased: false, anomalyAmp: 0.05 },
   },
   {
     id: 'wf_midwives_per_10k',
@@ -764,7 +764,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Midwives assigned per 10,000 residents.',
     decimals: 2,
-    gen: { base: 4.1, spread: 0.5, loads: { serviceCapacity: 0.7, urbanicity: -0.2 }, trend: 0.01, countBased: false },
+    gen: { base: 4.1, spread: 0.5, loads: { serviceCapacity: 0.7, urbanicity: -0.2 }, trend: 0.01, countBased: false, anomalyAmp: 0.04 },
   },
   {
     id: 'wf_bhw_per_1000',
@@ -778,7 +778,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Accredited barangay health workers per 1,000 residents.',
     decimals: 2,
-    gen: { base: 2.9, spread: 0.45, loads: { urbanicity: -0.5, serviceCapacity: 0.5 }, trend: 0.005, countBased: false },
+    gen: { base: 2.9, spread: 0.45, loads: { urbanicity: -0.5, serviceCapacity: 0.5 }, trend: 0.005, countBased: false, anomalyAmp: 0.04 },
   },
   {
     id: 'wf_beds_per_10k',
@@ -795,7 +795,7 @@ export const INDICATORS: Indicator[] = [
     decimals: 2,
     mapNote:
       'Beds are attributed to the host LGU. A municipality with the district hospital will look extremely well supplied and its neighbours extremely poorly supplied, when in practice they share one facility. Read this alongside the Access view.',
-    gen: { base: 6.2, spread: 1.2, loads: { urbanicity: 1.2, serviceCapacity: 1.0, remoteness: -0.6 }, trend: 0.005, countBased: false },
+    gen: { base: 6.2, spread: 1.2, loads: { urbanicity: 1.2, serviceCapacity: 1.0, remoteness: -0.6 }, trend: 0.005, countBased: false, anomalyAmp: 0.03 },
   },
   {
     id: 'wf_vacancy_rate',
@@ -809,7 +809,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of funded health positions unfilled at period end.',
     decimals: 1,
-    gen: { base: 16, spread: 0.6, loads: { remoteness: 1.0, deprivation: 0.5, urbanicity: -0.5 }, trend: -0.01, countBased: false },
+    gen: { base: 16, spread: 0.6, loads: { remoteness: 1.0, deprivation: 0.5, urbanicity: -0.5 }, trend: -0.01, countBased: false, anomalyAmp: 0.09 },
   },
 
   // ───────────────────────────── WASH ─────────────────────────────
@@ -825,7 +825,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of households with a basic improved drinking water source.',
     decimals: 1,
-    gen: { base: 87, spread: 0.6, loads: { remoteness: -1.0, deprivation: -0.9, urbanicity: 0.5 }, trend: 0.008, countBased: false },
+    gen: { base: 87, spread: 0.6, loads: { remoteness: -1.0, deprivation: -0.9, urbanicity: 0.5 }, trend: 0.008, countBased: false, anomalyAmp: 0.04 },
   },
   {
     id: 'wash_sanitation',
@@ -839,7 +839,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of households with an improved, non-shared toilet facility.',
     decimals: 1,
-    gen: { base: 81, spread: 0.65, loads: { deprivation: -1.1, remoteness: -0.7, urbanicity: 0.4 }, trend: 0.01, countBased: false },
+    gen: { base: 81, spread: 0.65, loads: { deprivation: -1.1, remoteness: -0.7, urbanicity: 0.4 }, trend: 0.01, countBased: false, anomalyAmp: 0.04 },
   },
   {
     id: 'wash_open_defecation',
@@ -853,7 +853,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of households practising open defecation.',
     decimals: 2,
-    gen: { base: 3.1, spread: 1.1, loads: { deprivation: 1.2, remoteness: 0.9, urbanicity: -0.7 }, trend: -0.04, countBased: false },
+    gen: { base: 3.1, spread: 1.1, loads: { deprivation: 1.2, remoteness: 0.9, urbanicity: -0.7 }, trend: -0.04, countBased: false, anomalyAmp: 0.06 },
   },
   {
     id: 'wash_waste_collection',
@@ -867,7 +867,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of households served by scheduled solid waste collection.',
     decimals: 1,
-    gen: { base: 62, spread: 0.8, loads: { urbanicity: 1.3, remoteness: -0.9 }, trend: 0.015, countBased: false },
+    gen: { base: 62, spread: 0.8, loads: { urbanicity: 1.3, remoteness: -0.9 }, trend: 0.015, countBased: false, anomalyAmp: 0.05 },
   },
 
   // ───────────────────────────── Financing ─────────────────────────────
@@ -883,7 +883,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of residents with active national health insurance membership.',
     decimals: 1,
-    gen: { base: 83, spread: 0.45, loads: { deprivation: -0.7, remoteness: -0.5, urbanicity: 0.4 }, trend: 0.012, countBased: false },
+    gen: { base: 83, spread: 0.45, loads: { deprivation: -0.7, remoteness: -0.5, urbanicity: 0.4 }, trend: 0.012, countBased: false, anomalyAmp: 0.05 },
   },
   {
     id: 'fin_claims_per_1000',
@@ -899,7 +899,7 @@ export const INDICATORS: Indicator[] = [
       'Claims filed per 1,000 covered residents. Low claiming in a covered population usually signals a supply or awareness problem, not good health.',
     decimals: 1,
     minNumerator: 10,
-    gen: { base: 96, spread: 0.55, loads: { serviceCapacity: 0.9, remoteness: -0.8, healthSeeking: 0.5 }, trend: 0.02, countBased: true },
+    gen: { base: 96, spread: 0.55, loads: { serviceCapacity: 0.9, remoteness: -0.8, healthSeeking: 0.5 }, trend: 0.02, countBased: true, temporal: 'flow', seasonAmp: 0.08, seasonPeak: 6, anomalyAmp: 0.14 },
   },
   {
     id: 'fin_oop_share',
@@ -913,7 +913,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of household health expenditure paid directly at point of care.',
     decimals: 1,
-    gen: { base: 44, spread: 0.4, loads: { serviceCapacity: -0.7, remoteness: 0.6, deprivation: 0.4 }, trend: -0.01, countBased: false },
+    gen: { base: 44, spread: 0.4, loads: { serviceCapacity: -0.7, remoteness: 0.6, deprivation: 0.4 }, trend: -0.01, countBased: false, anomalyAmp: 0.06 },
   },
   {
     id: 'fin_budget_per_capita',
@@ -927,7 +927,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Appropriated LGU health budget divided by population, in pesos.',
     decimals: 0,
-    gen: { base: 1180, spread: 0.6, loads: { urbanicity: 0.8, deprivation: -0.4, serviceCapacity: 0.6 }, trend: 0.04, countBased: false },
+    gen: { base: 1180, spread: 0.6, loads: { urbanicity: 0.8, deprivation: -0.4, serviceCapacity: 0.6 }, trend: 0.04, countBased: false, anomalyAmp: 0.05 },
   },
 
   // ───────────────────────────── Demography ─────────────────────────────
@@ -974,7 +974,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of residents under five years old.',
     decimals: 1,
-    gen: { base: 10.2, spread: 0.22, loads: { deprivation: 0.6, urbanicity: -0.4 }, trend: -0.005, countBased: false },
+    gen: { base: 10.2, spread: 0.22, loads: { deprivation: 0.6, urbanicity: -0.4 }, trend: -0.005, countBased: false, anomalyAmp: 0.02 },
   },
   {
     id: 'dem_over60_share',
@@ -988,7 +988,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Share of residents aged 60 or older. Drives NCD and long-term care demand.',
     decimals: 1,
-    gen: { base: 9.1, spread: 0.3, loads: { urbanicity: -0.3, remoteness: 0.4 }, trend: 0.012, countBased: false },
+    gen: { base: 9.1, spread: 0.3, loads: { urbanicity: -0.3, remoteness: 0.4 }, trend: 0.012, countBased: false, anomalyAmp: 0.02 },
   },
   {
     id: 'dem_dependency_ratio',
@@ -1002,7 +1002,7 @@ export const INDICATORS: Indicator[] = [
     mappable: true,
     definition: 'Dependants (under 15 plus 65 and over) per 100 working-age residents.',
     decimals: 1,
-    gen: { base: 58, spread: 0.2, loads: { deprivation: 0.6, urbanicity: -0.5 }, trend: -0.004, countBased: false },
+    gen: { base: 58, spread: 0.2, loads: { deprivation: 0.6, urbanicity: -0.5 }, trend: -0.004, countBased: false, anomalyAmp: 0.02 },
   },
 
   // ─────────────── Computed spatial metrics (derived, not generated) ───────────────

@@ -28,13 +28,23 @@ import { DetailPanel } from './components/DetailPanel';
 import { RankList, type RankRow } from './components/RankList';
 import { Distribution, Scatter, type ScatterPoint } from './components/charts';
 import { MethodSheet } from './components/MethodSheet';
-import { InfoIcon, WarnIcon } from './components/icons';
+import { Timeline } from './components/Timeline';
+import { formatPeriod } from './data/periods';
+import {
+  InfoIcon,
+  PanelBottomIcon,
+  PanelLeftIcon,
+  PanelRightIcon,
+  WarnIcon,
+} from './components/icons';
 
 /* ───────────────────────────── Model types ───────────────────────────── */
 
 interface Scope {
   pcodes: Set<PCode>;
   label: string;
+  /** Stable cache key for pooled-value lookups; changes whenever `pcodes` does. */
+  key: string;
 }
 
 interface SingleModel {
@@ -107,6 +117,22 @@ export default function App() {
     return () => ac.abort();
   }, []);
 
+  // ── Timeline playback ──
+  // A plain interval stepping whole months. No requestAnimationFrame and no
+  // tweening: the map holds each month, then jumps to the next.
+  useEffect(() => {
+    if (!state.playing || !ds) return undefined;
+    const periods = ds.periods;
+    const id = window.setInterval(() => {
+      setState((s) => {
+        const i = periods.indexOf(s.period);
+        const next = periods[(i + 1) % periods.length];
+        return { ...s, period: next };
+      });
+    }, state.playSpeedMs);
+    return () => window.clearInterval(id);
+  }, [state.playing, state.playSpeedMs, ds]);
+
   // ── Scope: which units the current filters leave in play ──
   const scope = useMemo<Scope | null>(() => {
     if (!ds) return null;
@@ -129,8 +155,44 @@ export default function App() {
     const regName = state.regionPcode
       ? ds.province.units.find((u) => u.regionPcode === state.regionPcode)?.regionName ?? null
       : null;
-    return { pcodes, label: provName ?? (regName ? shortRegionName(regName) : 'the Philippines') };
+    return {
+      pcodes,
+      label: provName ?? (regName ? shortRegionName(regName) : 'the Philippines'),
+      // Cache key for pooled values: must change whenever `pcodes` does.
+      key: `${state.level}|${state.regionPcode ?? '*'}|${state.provincePcode ?? '*'}`,
+    };
   }, [ds, state.level, state.regionPcode, state.provincePcode]);
+
+  /**
+   * Class breaks are computed ONCE over the whole timeline, not per month.
+   * If they were recomputed each frame the palette would be recalibrated on
+   * every step and an area could change colour while its value stood still —
+   * which would make the animation actively misleading. Deliberately not keyed
+   * on `state.period`.
+   */
+  const fixedBreaks = useMemo(() => {
+    if (!ds || !scope) return null;
+    const indId =
+      state.view === 'access'
+        ? state.accessMetricId
+        : state.view === 'explore'
+          ? state.indicatorId
+          : null;
+    if (!indId) return null;
+    const ind = INDICATOR_BY_ID[indId];
+    if (!ind?.mappable) return null;
+    const pooled = ds.pooledValues(indId, state.level, scope.key, scope.pcodes);
+    return computeBreaks(pooled, state.classCount, state.classMethod);
+  }, [
+    ds,
+    scope,
+    state.view,
+    state.indicatorId,
+    state.accessMetricId,
+    state.level,
+    state.classCount,
+    state.classMethod,
+  ]);
 
   // ── Colour + legend model, per view ──
   const model = useMemo<Model | null>(() => {
@@ -263,7 +325,10 @@ export default function App() {
       scopeValues.push(v);
     }
 
-    const breaks = computeBreaks(scopeValues, state.classCount, state.classMethod);
+    // Fixed across the timeline (see `fixedBreaks`); falls back to this month's
+    // values only when the indicator is not mapped and no pooled set exists.
+    const breaks =
+      fixedBreaks ?? computeBreaks(scopeValues, state.classCount, state.classMethod);
     const ramp = rampForDirection(ind.direction, Math.max(1, breaks.k));
 
     if (ind.mappable) {
@@ -306,7 +371,7 @@ export default function App() {
       nSuppressed,
       nOutOfScope,
     };
-  }, [ds, scope, state, legendClass]);
+  }, [ds, scope, state, legendClass, fixedBreaks]);
 
   // ── Camera: fit to the filtered area ──
   const fitBounds = useMemo(() => {
@@ -426,7 +491,12 @@ export default function App() {
       : false;
 
   return (
-    <div className="app">
+    <div
+      className="app"
+      data-rail={state.railHidden ? 'hidden' : 'shown'}
+      data-detail={state.detailHidden ? 'hidden' : 'shown'}
+      data-strip={state.stripHidden ? 'hidden' : 'shown'}
+    >
       <header className="topbar">
         <div className="topbar__brand">
           <div className="topbar__title">Spatial Health Intelligence</div>
@@ -449,6 +519,37 @@ export default function App() {
         </div>
 
         <div className="topbar__spacer" />
+
+        <div className="panel-toggles" role="group" aria-label="Show or hide panels">
+          <button
+            aria-pressed={!state.railHidden}
+            aria-label={state.railHidden ? 'Show controls panel' : 'Hide controls panel'}
+            title={state.railHidden ? 'Show controls' : 'Hide controls'}
+            onClick={() => update({ railHidden: !state.railHidden })}
+          >
+            <PanelLeftIcon on={!state.railHidden} />
+          </button>
+          <button
+            aria-pressed={!state.stripHidden}
+            aria-label={state.stripHidden ? 'Show analysis strip' : 'Hide analysis strip'}
+            title={state.stripHidden ? 'Show distribution and ranking' : 'Hide distribution and ranking'}
+            onClick={() => update({ stripHidden: !state.stripHidden })}
+          >
+            <PanelBottomIcon on={!state.stripHidden} />
+          </button>
+          <button
+            aria-pressed={!state.detailHidden}
+            aria-label={state.detailHidden ? 'Show detail panel' : 'Hide detail panel'}
+            title={
+              state.detailHidden
+                ? 'Show area details — selecting an area also reopens this'
+                : 'Hide area details'
+            }
+            onClick={() => update({ detailHidden: !state.detailHidden })}
+          >
+            <PanelRightIcon on={!state.detailHidden} />
+          </button>
+        </div>
 
         <button
           className="synthetic-chip"
@@ -474,7 +575,15 @@ export default function App() {
               selectedPcode={state.selectedPcode}
               hoverPcode={hover?.pcode ?? null}
               onHover={(pcode, pt) => setHover(pcode && pt ? { pcode, x: pt.x, y: pt.y } : null)}
-              onSelect={(pcode) => update({ selectedPcode: pcode })}
+              // Picking an area is a request to read about it, so the detail
+              // panel comes back. The rail and strip are left as the user set
+              // them — reopening everything on every click would defeat the
+              // point of having separate toggles. Clicking empty sea only
+              // clears the selection.
+              onSelect={(pcode) =>
+                update(pcode ? { selectedPcode: pcode, detailHidden: false } : { selectedPcode: null })
+              }
+              resizeKey={`${state.railHidden}|${state.detailHidden}|${state.stripHidden}`}
               facilities={facilities}
               bubbles={bubbles}
               highlightPcodes={model.kind === 'single' ? model.highlight : null}
@@ -494,7 +603,7 @@ export default function App() {
                 <p className="map-subtitle">
                   {activeView.question} · {scope.pcodes.size.toLocaleString()}{' '}
                   {state.level === 'province' ? 'provinces' : 'cities & municipalities'} ·{' '}
-                  {state.period}
+                  {formatPeriod(state.period)}
                 </p>
 
                 {model.kind === 'single' && !model.ind.mappable && (
@@ -601,6 +710,16 @@ export default function App() {
               </div>
             )}
           </div>
+
+          <Timeline
+            periods={ds.periods}
+            period={state.period}
+            playing={state.playing}
+            speedMs={state.playSpeedMs}
+            onScrub={(p) => update({ period: p, playing: false })}
+            onTogglePlay={() => update({ playing: !state.playing })}
+            onSpeedChange={(ms) => update({ playSpeedMs: ms })}
+          />
 
           <div className="strip">
             <StripContent
@@ -1014,7 +1133,7 @@ function ScreenDetail({
             <span style={{ fontSize: 17, color: 'var(--text-3)' }}> / {model.k}</span>
           </span>
         </div>
-        <div className="bignum__label">criteria met in {state.period}</div>
+        <div className="bignum__label">criteria met in {formatPeriod(state.period)}</div>
 
         {unknown > 0 && (
           <div className="notice notice--warn" style={{ marginTop: 10 }}>

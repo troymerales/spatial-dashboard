@@ -1,0 +1,286 @@
+# Contents
+
+## Indicators
+
+- Service utilisation
+  - Outpatient consultations per 1,000 population
+  - Outpatient consultations (total count)
+  - Share of consultations that are first visits
+  - Referrals to a higher-level facility per 1,000 population
+  - Emergency presentations per 1,000 population
+  - Teleconsultation share of consultations
+  - Follow-up appointments kept
+- Maternal & child health
+  - Antenatal care, 4+ visits
+  - Facility-based deliveries
+  - Births attended by a skilled provider
+  - Postpartum visit within 72 hours
+  - Adolescent birth rate (15–19)
+  - Low birth weight
+  - Modern contraceptive prevalence
+  - Maternal deaths (count)
+- Immunisation
+  - Fully immunised children
+  - Measles-containing vaccine, 2nd dose
+  - Pentavalent 3rd dose coverage
+  - Penta1-to-Penta3 dropout
+  - Zero-dose children
+- Communicable disease
+  - TB case notification rate
+  - TB treatment success rate
+  - Dengue incidence
+  - Acute respiratory infection, under 5
+  - Diarrhoeal disease, under 5
+  - Leptospirosis incidence
+  - HIV testing uptake, adults
+  - HIV prevalence, adults
+- Non-communicable disease
+  - Hypertension prevalence, adults
+  - Hypertension controlled on treatment
+  - Diabetes prevalence, adults
+  - Adults screened for hypertension or diabetes
+  - Cardiovascular admissions per 10,000
+  - Chronic respiratory consultations per 1,000
+  - Mental health service contacts per 1,000
+- Nutrition
+  - Stunting, under 5
+  - Wasting, under 5
+  - Overweight, under 5
+  - Exclusive breastfeeding to 6 months
+  - Vitamin A supplementation, 6–59 months
+- Workforce & facilities
+  - Health facilities per 10,000 population
+  - Physicians per 10,000 population
+  - Nurses per 10,000 population
+  - Midwives per 10,000 population
+  - Barangay health workers per 1,000 population
+  - Hospital beds per 10,000 population
+  - Funded health posts vacant
+  - Straight-line distance to nearest facility
+  - Straight-line distance to nearest inpatient facility
+- Water, sanitation & environment
+  - Households with basic safe water
+  - Households with basic sanitation
+  - Open defecation
+  - Households with regular waste collection
+- Coverage & financing
+  - Population with active health insurance
+  - Insurance claims per 1,000 members
+  - Out-of-pocket share of health spending
+  - LGU health budget per capita
+- Demographic context
+  - Total population
+  - Population density
+  - Population under 5
+  - Population 60 and over
+  - Age dependency ratio
+
+## Map controls
+
+- Geographic level
+  - Provinces
+  - Cities & municipalities
+- Period
+  - 202401
+  - 202402
+  - 202403
+  - 202404
+  - 202405
+  - 202406
+  - 202407
+  - 202408
+  - 202409
+  - 202410
+  - 202411
+  - 202412
+  - 202501
+  - 202502
+  - 202503
+  - 202504
+  - 202505
+  - 202506
+  - 202507
+  - 202508
+  - 202509
+  - 202510
+  - 202511
+  - 202512
+- Classification — break method
+  - Quantile
+  - Natural breaks
+  - Equal interval
+  - Std deviation
+- Classification — classes
+  - 3 classes
+  - 4 classes
+  - 5 classes
+  - 6 classes
+  - 7 classes
+- Overlays
+  - Facility locations
+  - Population as proportional circles
+  - Street basemap
+- Analysis views
+  - Explore
+  - Compare
+  - Screen
+  - Access
+
+## Area detail pane
+
+- Headline
+  - Area name, parent province and region
+  - Value for the selected indicator and period
+  - Reliability flag (stable / moderate / unstable)
+  - Withheld, no-report or no-denominator explanation when there is no value
+- Where this sits
+  - Rank among areas in the current filter
+  - Percentile within the current filter
+  - Difference from the national median
+  - Difference from the parent province median
+  - Difference from contiguous neighbours
+  - 95% confidence interval (proportions only)
+- Trend
+  - Sparkline across all months
+  - Percentage change since the first month
+- How the number is built
+  - Numerator (cases counted)
+  - Denominator (population base)
+- Area context
+  - Population
+  - Land area
+  - Facility count
+  - Straight-line distance to the nearest inpatient facility
+- About this indicator
+  - Definition
+  - Mapping caveat, where one applies
+
+## Population bases
+
+- Denominators
+  - Total population
+  - Women 15–49
+  - Children under 5
+  - Live births
+  - Households
+  - Population 15+
+  - Population 60+
+
+## Facility types
+
+- All types
+  - Barangay health station
+  - Rural health unit / city health centre
+  - Birthing home
+  - Private clinic
+  - Infirmary
+  - District hospital
+  - Provincial / city hospital
+
+## Regions and provinces
+
+- Bangsamoro Autonomous Region In Muslim Mindanao (BARMM)
+  - Basilan
+  - Lanao del Sur
+  - Maguindanao del Norte
+  - Maguindanao del Sur
+  - Special Geographic Area
+  - Sulu
+  - Tawi-Tawi
+- Cordillera Administrative Region (CAR)
+  - Abra
+  - Apayao
+  - Benguet
+  - Ifugao
+  - Kalinga
+  - Mountain Province
+- Mimaropa Region
+  - Marinduque
+  - Occidental Mindoro
+  - Oriental Mindoro
+  - Palawan
+  - Romblon
+- National Capital Region (NCR)
+  - Metropolitan Manila First District
+  - Metropolitan Manila Fourth District
+  - Metropolitan Manila Second District
+  - Metropolitan Manila Third District
+- Region I (Ilocos Region)
+  - Ilocos Norte
+  - Ilocos Sur
+  - La Union
+  - Pangasinan
+- Region II (Cagayan Valley)
+  - Batanes
+  - Cagayan
+  - Isabela
+  - Nueva Vizcaya
+  - Quirino
+- Region III (Central Luzon)
+  - Aurora
+  - Bataan
+  - Bulacan
+  - Nueva Ecija
+  - Pampanga
+  - Tarlac
+  - Zambales
+- Region IV-A (Calabarzon)
+  - Batangas
+  - Cavite
+  - Laguna
+  - Quezon
+  - Rizal
+- Region IX (Zamboanga Peninsula)
+  - City of Isabela (not a province)
+  - Zamboanga del Norte
+  - Zamboanga del Sur
+  - Zamboanga Sibugay
+- Region V (Bicol Region)
+  - Albay
+  - Camarines Norte
+  - Camarines Sur
+  - Catanduanes
+  - Masbate
+  - Sorsogon
+- Region VI (Western Visayas)
+  - Aklan
+  - Antique
+  - Capiz
+  - Guimaras
+  - Iloilo
+  - Negros Occidental
+- Region VII (Central Visayas)
+  - Bohol
+  - Cebu
+  - Negros Oriental
+  - Siquijor
+- Region VIII (Eastern Visayas)
+  - Biliran
+  - Eastern Samar
+  - Leyte
+  - Northern Samar
+  - Samar (Western Samar)
+  - Southern Leyte
+- Region X (Northern Mindanao)
+  - Bukidnon
+  - Camiguin
+  - Lanao del Norte
+  - Misamis Occidental
+  - Misamis Oriental
+- Region XI (Davao Region)
+  - Davao de Oro (Compostela Valley)
+  - Davao del Norte
+  - Davao del Sur
+  - Davao Occidental
+  - Davao Oriental
+- Region XII (Soccsksargen)
+  - Cotabato (North Cotabato)
+  - Sarangani
+  - South Cotabato
+  - Sultan Kudarat
+- Region XIII (Caraga)
+  - Agusan del Norte
+  - Agusan del Sur
+  - Dinagat Islands
+  - Surigao del Norte
+  - Surigao del Sur

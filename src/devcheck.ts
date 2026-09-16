@@ -6,6 +6,7 @@ import { buildDataset } from './data/dataset';
 import { INDICATORS, INDICATOR_BY_ID } from './data/indicators';
 import { computeBreaks, spearman } from './lib/stats';
 import { LATEST_PERIOD } from './data/synth';
+import { PERIODS, formatPeriodShort, periodMonth } from './data/periods';
 
 function pct(n: number, d: number): string {
   return d ? ((n / d) * 100).toFixed(1) + '%' : '—';
@@ -157,6 +158,78 @@ export async function run(): Promise<void> {
       console.log('  ' + (a + ' ~ ' + b).padEnd(52) + level.padEnd(14) + 'rho=' + spearman(xs, ys).toFixed(2) + '  n=' + xs.length);
     }
   }
+
+  // ── Monthly behaviour: the timeline animation depends on all of this ──
+  console.log(
+    `\ntimeline: ${PERIODS.length} months, ${formatPeriodShort(PERIODS[0])} -> ${formatPeriodShort(
+      PERIODS[PERIODS.length - 1],
+    )}`,
+  );
+
+  const seasonalCheck = ['com_dengue', 'com_ari_under5', 'util_outpatient_rate'];
+  for (const id of seasonalCheck) {
+    const monthly = PERIODS.map((p) => ds.surface(id, 'province', p).stats.median);
+    const lo = Math.min(...monthly);
+    const hi = Math.max(...monthly);
+    const peakAt = PERIODS[monthly.indexOf(hi)];
+    console.log(
+      '  ' + id.padEnd(22) +
+      ' median/month min=' + lo.toFixed(1) + ' max=' + hi.toFixed(1) +
+      ' ratio=' + (hi / lo).toFixed(2) + 'x peak=' + formatPeriodShort(peakAt),
+    );
+  }
+
+  // Seasonal phase really does vary geographically (not one national pulse).
+  {
+    const peaks = new Map<string, number>();
+    const provs = ds.province.units;
+    for (const u of provs) {
+      let best = -Infinity, bestMonth = 0;
+      for (const p of PERIODS) {
+        const v = ds.surface('com_dengue', 'province', p).byPcode.get(u.pcode)?.value;
+        if (v != null && v > best) { best = v; bestMonth = periodMonth(p); }
+      }
+      peaks.set(u.pcode, bestMonth);
+    }
+    const counts = new Array(12).fill(0) as number[];
+    for (const m of peaks.values()) counts[m]++;
+    console.log('  dengue peak month across provinces: ' +
+      counts.map((c, i) => i + ':' + c).filter((x) => !x.endsWith(':0')).join(' '));
+  }
+
+  // Frame-to-frame churn under FIXED breaks — the animation should move without
+  // being pure static.
+  for (const [id, level] of [['com_dengue', 'province'], ['util_outpatient_rate', 'municipality']] as const) {
+    const pooled: number[] = [];
+    for (const p of PERIODS) pooled.push(...ds.surface(id, level, p).values);
+    const fixed = computeBreaks(pooled, 5, 'quantile').breaks;
+    const cls = (v: number) => { let i = 0; while (i < fixed.length && v >= fixed[i]) i++; return i; };
+    let changed = 0, compared = 0;
+    for (let t = 1; t < PERIODS.length; t++) {
+      const a = ds.surface(id, level, PERIODS[t - 1]).byPcode;
+      const b = ds.surface(id, level, PERIODS[t]).byPcode;
+      for (const [pc, oa] of a) {
+        const ob = b.get(pc);
+        if (oa.value == null || ob?.value == null) continue;
+        compared++;
+        if (cls(oa.value) !== cls(ob.value)) changed++;
+      }
+    }
+    console.log('  ' + (id + '/' + level).padEnd(38) +
+      ' areas changing class per step: ' + ((changed / compared) * 100).toFixed(1) + '%');
+  }
+
+  // Suppression under monthly counts, at both levels.
+  console.log(`\nmonthly suppression (latest month):`);
+  for (const id of ['util_outpatient_rate', 'com_dengue', 'com_tb_notification', 'com_leptospirosis']) {
+    for (const level of ['municipality', 'province'] as const) {
+      const s = ds.surface(id, level, LATEST_PERIOD);
+      console.log('  ' + (id + '/' + level).padEnd(40) +
+        ' usable=' + String(s.stats.n).padStart(5) + '/' + s.byPcode.size +
+        '  suppressed=' + s.stats.nSuppressed);
+    }
+  }
+
   if (problems.length) {
     console.log('\nPROBLEMS:');
     for (const p of problems.slice(0, 30)) console.log('  - ' + p);

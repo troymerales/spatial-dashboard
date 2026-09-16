@@ -1,35 +1,14 @@
 import { useMemo } from 'react';
-import type { ClassMethod, GeoLevel } from '../types';
+import type { ClassMethod } from '../types';
 import type { Dataset } from '../data/dataset';
 import type { Criterion, SpatialState } from '../state';
 import { INDICATOR_BY_ID, INDICATORS } from '../data/indicators';
 import { FACILITY_TYPES } from '../data/facilities';
+import { CLASS_COUNTS, CLASS_METHODS, GEO_LEVELS, OVERLAYS } from '../data/ui-taxonomy';
 import { IndicatorPicker } from './IndicatorPicker';
 import { shortRegionName } from '../lib/format';
+import { formatPeriod } from '../data/periods';
 import { TrashIcon, PlusIcon, InfoIcon } from './icons';
-
-const CLASS_METHODS: Array<{ id: ClassMethod; label: string; note: string }> = [
-  {
-    id: 'quantile',
-    label: 'Quantile',
-    note: 'Equal number of areas per class. Always readable, but exaggerates differences when values are tightly bunched.',
-  },
-  {
-    id: 'jenks',
-    label: 'Natural breaks',
-    note: 'Cuts at the natural gaps in the distribution. Usually the fairest default when the data is lumpy.',
-  },
-  {
-    id: 'equal',
-    label: 'Equal interval',
-    note: 'Equal value ranges. Honest about absolute distance, but a single outlier can leave most classes empty.',
-  },
-  {
-    id: 'stddev',
-    label: 'Std deviation',
-    note: 'Classes around the mean. Useful for spotting genuine outliers, misleading when the distribution is skewed.',
-  },
-];
 
 export function ControlRail({
   ds,
@@ -64,13 +43,13 @@ export function ControlRail({
         <div className="field">
           <span className="field__label">Map areas as</span>
           <div className="segmented" role="group" aria-label="Geographic level">
-            {(['province', 'municipality'] as GeoLevel[]).map((lv) => (
+            {GEO_LEVELS.map(({ id: lv, label }) => (
               <button
                 key={lv}
                 aria-pressed={state.level === lv}
                 onClick={() => update({ level: lv, selectedPcode: null })}
               >
-                {lv === 'province' ? `Provinces (${ds.province.units.length})` : `Cities & municipalities`}
+                {lv === 'province' ? `${label} (${ds.province.units.length})` : label}
               </button>
             ))}
           </div>
@@ -132,7 +111,7 @@ export function ControlRail({
 
         <div className="field">
           <label className="field__label" htmlFor="ctl-period">
-            Period
+            Month
           </label>
           <select
             id="ctl-period"
@@ -141,7 +120,7 @@ export function ControlRail({
           >
             {ds.periods.map((p) => (
               <option key={p} value={p}>
-                {p}
+                {formatPeriod(p)}
                 {p === ds.latestPeriod ? ' (latest)' : ''}
               </option>
             ))}
@@ -229,15 +208,15 @@ export function ControlRail({
             </select>
             <p className="field__hint">{methodNote}</p>
             <p className="field__hint">
-              Breaks are recomputed over the areas currently in view, so filtering to a region
-              rescales the colours. Switch method to see how much the story depends on the cut
-              points.
+              Breaks are computed once over <strong>every month</strong> of the timeline, so colours
+              stay comparable as the animation plays. They are recomputed when you filter to a
+              region, since that changes which areas are in view.
             </p>
           </div>
           <div className="field">
             <span className="field__label">Classes</span>
             <div className="segmented" role="group" aria-label="Number of classes">
-              {[3, 4, 5, 6, 7].map((k) => (
+              {CLASS_COUNTS.map((k) => (
                 <button key={k} aria-pressed={state.classCount === k} onClick={() => update({ classCount: k })}>
                   {k}
                 </button>
@@ -258,9 +237,9 @@ export function ControlRail({
             onChange={(e) => update({ showFacilities: e.target.checked })}
           />
           <span>
-            Facility locations
+            {OVERLAYS[0].label}
             <span className="field__hint" style={{ marginTop: 1 }}>
-              Points, not shading — a facility is a place, not a property of an area.
+              {OVERLAYS[0].hint}
             </span>
           </span>
         </label>
@@ -304,10 +283,9 @@ export function ControlRail({
             onChange={(e) => update({ showPopulation: e.target.checked })}
           />
           <span>
-            Population as proportional circles
+            {OVERLAYS[1].label}
             <span className="field__hint" style={{ marginTop: 1 }}>
-              The honest encoding for a count. Shading a polygon by population maps land area, not
-              people.
+              {OVERLAYS[1].hint}
             </span>
           </span>
         </label>
@@ -319,9 +297,9 @@ export function ControlRail({
             onChange={(e) => update({ basemap: e.target.checked })}
           />
           <span>
-            Street basemap
+            {OVERLAYS[2].label}
             <span className="field__hint" style={{ marginTop: 1 }}>
-              Off by default: a busy basemap competes with the fill colours. Requires internet.
+              {OVERLAYS[2].hint}
             </span>
           </span>
         </label>

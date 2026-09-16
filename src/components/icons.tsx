@@ -46,6 +46,43 @@ export function TrashIcon() {
   );
 }
 
+/*
+ * Panel toggles. Each icon is the workspace rectangle with the edge it controls
+ * marked, so the button says which panel it affects without needing a label.
+ * The marked edge is filled when the panel is showing (`on`) and hollow when it
+ * is collapsed, giving state at a glance as well as position.
+ */
+
+export function PanelLeftIcon({ on = true }: { on?: boolean }) {
+  return (
+    <svg {...base} width={15} height={15}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
+      {on && <rect x="3" y="4" width="6" height="16" rx="2" fill="currentColor" stroke="none" />}
+    </svg>
+  );
+}
+
+export function PanelRightIcon({ on = true }: { on?: boolean }) {
+  return (
+    <svg {...base} width={15} height={15}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M15 4v16" />
+      {on && <rect x="15" y="4" width="6" height="16" rx="2" fill="currentColor" stroke="none" />}
+    </svg>
+  );
+}
+
+export function PanelBottomIcon({ on = true }: { on?: boolean }) {
+  return (
+    <svg {...base} width={15} height={15}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 14h18" />
+      {on && <rect x="3" y="14" width="18" height="6" rx="2" fill="currentColor" stroke="none" />}
+    </svg>
+  );
+}
+
 export function PlusIcon() {
   return (
     <svg {...base} width={13} height={13}>

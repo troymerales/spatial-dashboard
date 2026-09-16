@@ -101,8 +101,40 @@ export interface IndicatorGenSpec {
   spread: number;
   /** How strongly each latent field pushes the value up (+) or down (-). */
   loads: Partial<Record<LatentId, number>>;
-  /** Proportional drift per period. */
+  /** Proportional drift per year. */
   trend: number;
+
+  /**
+   * Whether the measure accumulates over the period or is a level observed at a
+   * point in time. This is the only thing that decides what gets divided into
+   * months: consultations, notifications and births are flows and scale down to
+   * a monthly quantity; coverage percentages, workforce ratios and prevalence
+   * are stocks and do not. Getting this wrong silently makes a rate twelve
+   * times too big or too small.
+   */
+  temporal?: 'flow' | 'stock';
+
+  /**
+   * Set to 'flow' when `exposureScale` describes an annual cohort (cases
+   * notified in a year, infants reached in a year) rather than a standing
+   * population. Defaults to 'stock'.
+   */
+  exposureTemporal?: 'flow' | 'stock';
+
+  /**
+   * Seasonality, in log units. 0 means flat. A value of 0.5 makes the peak
+   * month roughly e^1 ≈ 2.7x the trough.
+   */
+  seasonAmp?: number;
+
+  /** Calendar month of the seasonal peak, 0 = January. */
+  seasonPeak?: number;
+
+  /**
+   * Month-to-month volatility beyond seasonality, in log units. Drives the
+   * transient regional flare-ups that make the animation worth watching.
+   */
+  anomalyAmp?: number;
   /**
    * When true the generator draws an integer numerator from a Poisson draw on
    * (rate x denominator). This is what makes small LGUs genuinely unstable and
