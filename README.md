@@ -190,6 +190,60 @@ the obvious next step.
 
 ---
 
+## Deployment
+
+**It is a fully static site.** No server, no API, no database, no SSR, no build-time
+secrets. `npm run build` emits six files, and any static host will serve them:
+GitHub Pages, Netlify, Cloudflare Pages, S3 + CloudFront, Azure Static Web Apps,
+or plain nginx/Apache on an LGU's own box.
+
+```
+dist/index.html                          0.6 kB
+dist/assets/index-*.js                 1399 kB   (389 kB gzipped)
+dist/assets/index-*.css                  87 kB   ( 14 kB gzipped)
+dist/geo/ph-provinces.topojson          496 kB   (120 kB gzipped)
+dist/geo/ph-municipalities.topojson    1469 kB   (330 kB gzipped)
+dist/geo/SOURCE.md                        3 kB   (provenance; not loaded at runtime)
+```
+
+Roughly **3.4 MB raw, ~855 kB over the wire** with gzip, in six requests.
+
+### Notes that actually matter
+
+- **Serve compressed.** Gzip/brotli cuts the payload by about 75%. The TopoJSON
+  files compress especially well (1.4 MB → 330 kB); most of the practical load
+  time is decided here. On nginx, make sure `application/octet-stream` or the
+  `.topojson` extension is in `gzip_types`.
+- **`.topojson` MIME type does not matter.** Verified against a server that
+  returns `application/octet-stream` for it — `fetch().json()` ignores
+  `Content-Type`. No host configuration is needed.
+- **No SPA fallback rewrite needed.** The page is a single route with no
+  client-side router, so there are no deep links for a static host to 404 on.
+- **Subpath hosting works** (e.g. project sites at `example.org/spatial/`).
+  Build with the base flag and everything, including the boundary fetches,
+  resolves correctly — the app reads `import.meta.env.BASE_URL` rather than
+  hardcoding `/`:
+  ```bash
+  npm run build -- --base=/spatial/
+  ```
+  Verified end-to-end under `/spatial/` on a plain static server: 6 requests,
+  0 failures.
+- **Cache headers.** `assets/*` are content-hashed, so
+  `Cache-Control: public, max-age=31536000, immutable` is safe. The files under
+  `geo/` are **not** hashed — cache them for hours/days, not a year, or rename
+  them when the boundary vintage changes.
+- **Works fully offline once loaded.** The only outbound request is the optional
+  street basemap (CARTO raster tiles), which is off by default. With it off, the
+  page makes no third-party requests at all — which is the point for an LGU
+  deployment behind a restrictive network.
+- **Needs HTTP, not `file://`.** Boundaries are loaded with `fetch`, which the
+  `file://` origin blocks. Opening `dist/index.html` by double-clicking will not
+  work; serve it over HTTP (any static server will do).
+- **Requires WebGL.** If it is unavailable the map degrades to an explanatory
+  message and the ranked table and distribution still work.
+
+---
+
 ## Verification
 
 `node scripts/check-data.mjs` bundles the data layer for Node and checks it
