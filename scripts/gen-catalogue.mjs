@@ -14,6 +14,7 @@ const result = await build({
       export { CATEGORIES, INDICATORS, DENOMINATORS, DEFAULT_MIN_NUMERATOR } from './src/data/indicators';
       export { FACILITY_TYPES } from './src/data/facilities';
       export { PERIODS, SYNTHETIC_SEED } from './src/data/synth';
+      export { formatPeriodShort, formatPeriodDate } from './src/data/periods';
       export { VIEWS } from './src/state';
       export {
         CLASS_METHODS, CLASS_COUNTS, GEO_LEVELS, OVERLAYS, DETAIL_SECTIONS,
@@ -41,6 +42,8 @@ const {
   FACILITY_TYPES,
   PERIODS,
   SYNTHETIC_SEED,
+  formatPeriodShort,
+  formatPeriodDate,
   VIEWS,
   CLASS_METHODS,
   CLASS_COUNTS,
@@ -129,7 +132,11 @@ w(`| Deliberately not mapped | ${INDICATORS.length - mappable} |`);
 w(`| Count-based (get suppression + reliability flags) | ${countBased} |`);
 w(`| Population bases | ${DENOMINATORS.length} |`);
 w(`| Facility types | ${FACILITY_TYPES.length} |`);
-w(`| Periods | ${PERIODS.length} (${PERIODS[0]}–${PERIODS[PERIODS.length - 1]}) |`);
+w(
+  `| Periods | ${PERIODS.length} weeks (${formatPeriodShort(PERIODS[0])} – ${formatPeriodShort(
+    PERIODS[PERIODS.length - 1],
+  )}) |`,
+);
 w(`| Default disclosure threshold | ${DEFAULT_MIN_NUMERATOR} cases |`);
 w();
 
@@ -255,7 +262,13 @@ for (const cat of CATEGORIES) {
 
 toc.push('', '## Map controls', '');
 group('Geographic level', GEO_LEVELS.map((g) => g.label));
-group('Period', PERIODS.map(String));
+group('Timeline', [
+  'Granularity: weekly',
+  `${PERIODS.length} periods`,
+  `${formatPeriodShort(PERIODS[0])} (${formatPeriodDate(PERIODS[0])}) – ${formatPeriodShort(
+    PERIODS[PERIODS.length - 1],
+  )} (${formatPeriodDate(PERIODS[PERIODS.length - 1])})`,
+]);
 group('Classification — break method', CLASS_METHODS.map((m) => m.label));
 group('Classification — classes', CLASS_COUNTS.map((n) => `${n} classes`));
 group('Overlays', OVERLAYS.map((o) => o.label));

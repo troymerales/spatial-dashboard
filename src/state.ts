@@ -48,9 +48,9 @@ export interface SpatialState {
   detailHidden: boolean;
   stripHidden: boolean;
 
-  /** Timeline playback. Steps whole months; nothing is interpolated between them. */
+  /** Timeline playback. Steps whole weeks; nothing is interpolated between them. */
   playing: boolean;
-  /** Milliseconds each month is held on screen. */
+  /** Milliseconds each week is held on screen. */
   playSpeedMs: number;
 }
 
@@ -108,5 +108,5 @@ export const INITIAL_STATE: SpatialState = {
   detailHidden: false,
   stripHidden: false,
   playing: false,
-  playSpeedMs: 700,
+  playSpeedMs: 300,
 };

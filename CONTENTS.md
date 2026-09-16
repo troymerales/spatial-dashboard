@@ -80,31 +80,10 @@
 - Geographic level
   - Provinces
   - Cities & municipalities
-- Period
-  - 202401
-  - 202402
-  - 202403
-  - 202404
-  - 202405
-  - 202406
-  - 202407
-  - 202408
-  - 202409
-  - 202410
-  - 202411
-  - 202412
-  - 202501
-  - 202502
-  - 202503
-  - 202504
-  - 202505
-  - 202506
-  - 202507
-  - 202508
-  - 202509
-  - 202510
-  - 202511
-  - 202512
+- Timeline
+  - Granularity: weekly
+  - 156 periods
+  - W01 2023 (2 Jan 2023) – W52 2025 (22 Dec 2025)
 - Classification — break method
   - Quantile
   - Natural breaks

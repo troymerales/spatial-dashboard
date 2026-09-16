@@ -343,12 +343,21 @@ textarea {
   cursor: not-allowed;
 }
 
-/* Fixed width so the track does not shift as the month name changes length. */
+/* Fixed width so the track does not shift as the label changes length. */
 .timeline__now {
-  flex: 0 0 116px;
-  font-size: 13px;
+  flex: 0 0 216px;
+  font-size: 12.5px;
   font-weight: 650;
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1400px) {
+  .timeline__now {
+    flex-basis: 190px;
+  }
 }
 
 .timeline__track {

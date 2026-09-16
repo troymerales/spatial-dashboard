@@ -17,7 +17,7 @@
 | Count-based (get suppression + reliability flags) | 39 |
 | Population bases | 7 |
 | Facility types | 7 |
-| Periods | 24 (202401–202512) |
+| Periods | 156 weeks (W01 2023 – W52 2025) |
 | Default disclosure threshold | 10 cases |
 
 ## Contents

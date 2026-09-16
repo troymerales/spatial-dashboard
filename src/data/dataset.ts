@@ -110,8 +110,16 @@ function summarise(byPcode: Map<PCode, Observation>): {
   };
 }
 
-/** Roughly eight indicators' worth of months across both levels. */
-const MAX_CACHED_SURFACES = 400;
+/**
+ * Two indicators' worth of weeks across both levels (156 x 2 x 2).
+ *
+ * This MUST stay in step with the engine's own indicator cache. A municipality
+ * surface holds a reference to the engine's period map, so a surface cache
+ * larger than the engine cache pins the very maps the engine just evicted and
+ * nothing is ever actually freed — which is exactly what happened when this was
+ * sized for monthly periods and left alone after the switch to weeks.
+ */
+const MAX_CACHED_SURFACES = 630;
 
 const UNIT_MULT: Record<string, number> = {
   per_1000: 1000,
@@ -332,7 +340,7 @@ export async function buildDataset(signal?: AbortSignal): Promise<Dataset> {
 
     const built: IndicatorSurface = { indicator: ind, level, period, byPcode, values, sorted, stats };
     surfaceCache.set(key, built);
-    // 24 months x 2 levels per indicator; bound it so a long session browsing
+    // 156 weeks x 2 levels per indicator; bound it so a long session browsing
     // many indicators cannot pin every surface in memory.
     while (surfaceCache.size > MAX_CACHED_SURFACES) {
       const oldest = surfaceCache.keys().next().value;
@@ -363,9 +371,13 @@ export async function buildDataset(signal?: AbortSignal): Promise<Dataset> {
       }
     }
     pooledCache.set(key, out);
-    // A handful of scopes is normal; a long browsing session should not grow
-    // this without bound.
-    if (pooledCache.size > 24) pooledCache.delete(pooledCache.keys().next().value as string);
+    // Each entry is one number per area per period — ~1.4 MB at weekly
+    // granularity — so keep only a handful.
+    while (pooledCache.size > 8) {
+      const oldest = pooledCache.keys().next().value;
+      if (oldest === undefined) break;
+      pooledCache.delete(oldest);
+    }
     return out;
   };
 

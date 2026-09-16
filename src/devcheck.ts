@@ -159,9 +159,9 @@ export async function run(): Promise<void> {
     }
   }
 
-  // ── Monthly behaviour: the timeline animation depends on all of this ──
+  // ── Temporal behaviour: the timeline animation depends on all of this ──
   console.log(
-    `\ntimeline: ${PERIODS.length} months, ${formatPeriodShort(PERIODS[0])} -> ${formatPeriodShort(
+    `\ntimeline: ${PERIODS.length} periods, ${formatPeriodShort(PERIODS[0])} -> ${formatPeriodShort(
       PERIODS[PERIODS.length - 1],
     )}`,
   );
@@ -174,7 +174,7 @@ export async function run(): Promise<void> {
     const peakAt = PERIODS[monthly.indexOf(hi)];
     console.log(
       '  ' + id.padEnd(22) +
-      ' median/month min=' + lo.toFixed(1) + ' max=' + hi.toFixed(1) +
+      ' median/period min=' + lo.toFixed(1) + ' max=' + hi.toFixed(1) +
       ' ratio=' + (hi / lo).toFixed(2) + 'x peak=' + formatPeriodShort(peakAt),
     );
   }
@@ -197,8 +197,8 @@ export async function run(): Promise<void> {
       counts.map((c, i) => i + ':' + c).filter((x) => !x.endsWith(':0')).join(' '));
   }
 
-  // Frame-to-frame churn under FIXED breaks — the animation should move without
-  // being pure static.
+  // Frame-to-frame churn under FIXED breaks. At fine granularity much of this
+  // is sampling noise rather than signal — see the rolling-mean note in README.
   for (const [id, level] of [['com_dengue', 'province'], ['util_outpatient_rate', 'municipality']] as const) {
     const pooled: number[] = [];
     for (const p of PERIODS) pooled.push(...ds.surface(id, level, p).values);

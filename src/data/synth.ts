@@ -9,7 +9,7 @@ import type {
 } from '../types';
 import { DEFAULT_MIN_NUMERATOR } from './indicators';
 import { poissonRse } from '../lib/stats';
-import { PERIODS, PERIOD_YEAR_FRACTION, periodMonth } from './periods';
+import { PERIODS, PERIOD_YEAR_FRACTION, yearFraction } from './periods';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -35,14 +35,14 @@ import { PERIODS, PERIOD_YEAR_FRACTION, periodMonth } from './periods';
  *      binomial distributions over the actual denominator, so tiny LGUs really
  *      do produce wild rates. That is what lets suppression and reliability
  *      flagging be demonstrated honestly instead of mocked up.
- *   4. Month-to-month movement — seasonality whose peak arrives at different
+ *   4. Period-to-period movement — seasonality whose peak arrives at different
  *      times in different places, plus a persistent-but-drifting regional
- *      anomaly, so the monthly animation shows the geographic pattern changing
+ *      anomaly, so the weekly animation shows the geographic pattern changing
  *      rather than the whole map brightening at once.
  *
  * On (4): this is explicitly NOT a diffusion model. Nothing travels from one
  * LGU to a neighbour. It is time-varying spatial structure, which is all that
- * is needed for the map to change meaningfully as the months advance.
+ * is needed for the map to change meaningfully as the weeks advance.
  *
  * Values are generated at municipality level only. Province figures are true
  * aggregates of their municipalities, so drilling down always reconciles.
@@ -53,8 +53,20 @@ export const SYNTHETIC_SEED = 20260916;
 export { PERIODS } from './periods';
 export { LATEST_PERIOD, FIRST_PERIOD } from './periods';
 
-/** Indicators kept in memory. 24 months x 1,642 areas each adds up. */
-const MAX_CACHED_INDICATORS = 8;
+/**
+ * Indicators kept in memory. At weekly granularity one indicator is 156 periods
+ * x 1,642 areas — roughly 37 MB of observations — so this is deliberately
+ * tight. `MAX_CACHED_SURFACES` in dataset.ts must not exceed what this can back.
+ */
+const MAX_CACHED_INDICATORS = 2;
+
+/**
+ * Correlation time of the regional anomaly field, in years. Expressing it as a
+ * duration rather than a per-step coefficient keeps the behaviour identical
+ * whether a period is a week or a month: at weekly steps the flare-ups persist
+ * for the same number of *months*, instead of turning into weekly flicker.
+ */
+const ANOMALY_TAU_YEARS = 0.25;
 
 // ───────────────────────────────── PRNG ─────────────────────────────────
 
@@ -188,7 +200,7 @@ const invLogit = (x: number) => 1 / (1 + Math.exp(-x));
 export interface UnitProfile {
   pcode: PCode;
   latents: Record<LatentId, number>;
-  /** Population by period (months interpolated from the annual growth rate). */
+  /** Population by period, interpolated from the annual growth rate. */
   population: Record<number, number>;
   under5Share: number;
   over60Share: number;
@@ -211,6 +223,7 @@ const FLOW_DENOMINATORS = new Set<DenominatorId>(['live_births']);
 export class SyntheticEngine {
   readonly profiles = new Map<PCode, UnitProfile>();
   private readonly cache = new Map<string, Map<number, Map<PCode, Observation>>>();
+  /** Raw shock lattices per indicator; small, and evicted with the value cache. */
   private readonly anomalyCache = new Map<string, Array<(lon: number, lat: number) => number>>();
   private readonly munUnits: GeoUnit[];
   private readonly munByProvince = new Map<string, GeoUnit[]>();
@@ -261,7 +274,7 @@ export class SyntheticEngine {
       // divided into twelfths.
       const population: Record<number, number> = {};
       PERIODS.forEach((period, i) => {
-        const yearsFromEnd = (i - (PERIODS.length - 1)) / 12;
+        const yearsFromEnd = (i - (PERIODS.length - 1)) * PERIOD_YEAR_FRACTION;
         population[period] = Math.round(basePop * (1 + growth) ** yearsFromEnd);
       });
 
@@ -290,12 +303,12 @@ export class SyntheticEngine {
   }
 
   /**
-   * Population base for one area in one month.
+   * Population base for one area in one period.
    *
-   * Stocks (population, adults, households) are the level in that month. Flows
-   * (live births) are the annual figure divided into months, because a month's
-   * births are a twelfth of a year's — this is what keeps a monthly
-   * facility-birth percentage a percentage of that month's births.
+   * Stocks (population, adults, households) are the level in that period. Flows
+   * (live births) are the annual figure scaled to the period, because a week's
+   * births are a week's share of a year's — this is what keeps a weekly
+   * facility-birth percentage a percentage of that week's births.
    */
   denominator(pcode: PCode, id: DenominatorId, period: number): number {
     const p = this.profiles.get(pcode);
@@ -323,49 +336,33 @@ export class SyntheticEngine {
   }
 
   /**
-   * Monthly regional anomaly field for one indicator.
+   * The raw per-period shock fields an indicator's regional anomaly is built
+   * from. Only the lattices are cached — a handful of KB per indicator. The
+   * AR(1) recursion itself is carried inline while generating each unit (see
+   * `municipalSeries`), which is both exact and O(1) in memory.
    *
-   * An AR(1) chain of smooth spatial fields: each month is mostly last month
-   * carried forward plus a little fresh noise. Regions warm up over a few
-   * months and cool again, which is what makes the animation show a changing
-   * geographic pattern instead of the whole map brightening together.
+   * An earlier version memoised the recursion per coordinate in a Map keyed by
+   * "lon:lat". That retained ~170,000 entries per indicator and, because it was
+   * never evicted, leaked the entire history of every indicator ever viewed.
    */
-  private anomalyFields(indicatorId: string): Array<(lon: number, lat: number) => number> {
+  private anomalyShocks(indicatorId: string): Array<(lon: number, lat: number) => number> {
     const hit = this.anomalyCache.get(indicatorId);
     if (hit) return hit;
-
-    const RHO = 0.72;
-    const shocks = PERIODS.map((_, i) =>
+    const fields = PERIODS.map((_, i) =>
       makeField(hashString('anom|' + indicatorId + '|' + i, SYNTHETIC_SEED), 2),
     );
-
-    // Evaluated lazily per coordinate and memoised, so the AR(1) recursion is
-    // walked once per area rather than once per area per month.
-    const chain: Array<(lon: number, lat: number) => number> = [];
-    for (let i = 0; i < shocks.length; i++) {
-      const prev = i > 0 ? chain[i - 1] : null;
-      const shockField = shocks[i];
-      const memo = new Map<string, number>();
-      chain.push((lon: number, lat: number) => {
-        const key = lon + ':' + lat;
-        const cached = memo.get(key);
-        if (cached !== undefined) return cached;
-        const shock = (shockField(lon, lat) - 0.5) * 2;
-        const v = prev
-          ? RHO * prev(lon, lat) + Math.sqrt(1 - RHO * RHO) * shock
-          : shock;
-        memo.set(key, v);
-        return v;
-      });
+    this.anomalyCache.set(indicatorId, fields);
+    while (this.anomalyCache.size > MAX_CACHED_INDICATORS) {
+      const oldest = this.anomalyCache.keys().next().value;
+      if (oldest === undefined) break;
+      this.anomalyCache.delete(oldest);
     }
-
-    this.anomalyCache.set(indicatorId, chain);
-    return chain;
+    return fields;
   }
 
   /**
-   * Municipality-level observations for one indicator across every month.
-   * Memoised per indicator; one call generates all areas x all months.
+   * Municipality-level observations for one indicator across every period.
+   * Memoised per indicator; one call generates all areas x all periods.
    */
   municipalSeries(ind: Indicator): Map<number, Map<PCode, Observation>> {
     const hit = this.cache.get(ind.id);
@@ -383,7 +380,7 @@ export class SyntheticEngine {
     const exposureId: DenominatorId = ind.gen.exposure ?? ind.denominator ?? 'population';
     const exposureScale = ind.gen.exposureScale ?? 1;
 
-    // Flows are defined per year in the catalogue and become per-month here.
+    // Flows are defined per year in the catalogue and become per-period here.
     const rateScale = ind.gen.temporal === 'flow' ? PERIOD_YEAR_FRACTION : 1;
     const exposureTimeScale =
       ind.gen.exposureTemporal === 'flow' ? PERIOD_YEAR_FRACTION : 1;
@@ -391,7 +388,9 @@ export class SyntheticEngine {
     const seasonAmp = ind.gen.seasonAmp ?? 0;
     const seasonPeak = ind.gen.seasonPeak ?? 0;
     const anomalyAmp = ind.gen.anomalyAmp ?? 0.16;
-    const anomaly = anomalyAmp > 0 ? this.anomalyFields(ind.id) : null;
+    const shocks = anomalyAmp > 0 ? this.anomalyShocks(ind.id) : null;
+    const ANOM_RHO = Math.exp(-PERIOD_YEAR_FRACTION / ANOMALY_TAU_YEARS);
+    const ANOM_MIX = Math.sqrt(1 - ANOM_RHO * ANOM_RHO);
 
     for (const u of this.munUnits) {
       const profile = this.profiles.get(u.pcode);
@@ -415,10 +414,16 @@ export class SyntheticEngine {
       // Seasonal peaks do not arrive everywhere at once. A phase offset drawn
       // from a smooth field means neighbouring areas peak together and distant
       // ones do not, so the seasonal wave sweeps across the map.
-      const phaseShift = seasonAmp > 0 ? (this.seasonPhase(u.lon, u.lat) - 0.5) * 3 : 0;
+      // +-1.5 months, expressed as a fraction of a year.
+      const phaseShift = seasonAmp > 0 ? (this.seasonPhase(u.lon, u.lat) - 0.5) * 0.25 : 0;
 
       // Some units simply never filed a report.
       const neverReports = ind.gen.missingRate ? rand() < ind.gen.missingRate : false;
+
+      // AR(1) regional anomaly, carried forward as the periods are walked in
+      // order. Each period is mostly the previous one plus a little fresh
+      // shock, so regions warm up over a couple of months and cool again.
+      let anom = 0;
 
       PERIODS.forEach((period, ti) => {
         const map = byPeriod.get(period)!;
@@ -441,18 +446,24 @@ export class SyntheticEngine {
           hashString(ind.id + '|' + u.pcode + '|' + period, SYNTHETIC_SEED),
         );
 
-        // Trend is annual; spread it across the months of the timeline.
-        const yearsFromEnd = (ti - (PERIODS.length - 1)) / 12;
+        // Trend is annual; spread it across the periods of the timeline.
+        const yearsFromEnd = (ti - (PERIODS.length - 1)) * PERIOD_YEAR_FRACTION;
         const trendFactor = (1 + ind.gen.trend) ** yearsFromEnd;
 
-        const cm = periodMonth(period);
+        // Position in the calendar year, so the seasonal curve is independent
+        // of whether a period is a week or a month.
         const seasonal =
           seasonAmp > 0
-            ? seasonAmp * Math.cos(((cm - seasonPeak - phaseShift) / 12) * 2 * Math.PI)
+            ? seasonAmp * Math.cos(2 * Math.PI * (yearFraction(period) - seasonPeak / 12 - phaseShift))
             : 0;
-        const regional = anomaly ? anomalyAmp * anomaly[ti](u.lon, u.lat) : 0;
+        if (shocks) {
+          const shock = (shocks[ti](u.lon, u.lat) - 0.5) * 2;
+          anom = ti === 0 ? shock : ANOM_RHO * anom + ANOM_MIX * shock;
+        }
+        const regional = shocks ? anomalyAmp * anom : 0;
         const jitter = (periodRand() - 0.5) * 0.08;
-        const monthly = Math.exp(seasonal + regional + jitter);
+        // Combined multiplier for this period: season x regional anomaly x jitter.
+        const periodFactor = Math.exp(seasonal + regional + jitter);
 
         const exposure =
           this.denominator(u.pcode, exposureId, period) * exposureScale * exposureTimeScale;
@@ -466,7 +477,7 @@ export class SyntheticEngine {
 
         if (ind.valueType === 'proportion') {
           // A proportion is a level: seasonality nudges it rather than scaling
-          // it, and it is never divided into months.
+          // it, and it is never divided into periods.
           const p0 = Math.min(0.995, Math.max(0.002, ind.gen.base / 100));
           let p = invLogit(
             logit(p0) + drive + Math.log(trendFactor) * 3.2 + seasonal * 0.6 + regional * 0.6,
@@ -481,13 +492,13 @@ export class SyntheticEngine {
             value = p * 100;
           }
         } else if (ind.valueType === 'count') {
-          const perUnit = ind.gen.base * Math.exp(drive) * trendFactor * monthly * rateScale;
+          const perUnit = ind.gen.base * Math.exp(drive) * trendFactor * periodFactor * rateScale;
           numerator = poisson(perUnit * exposure, periodRand);
           value = numerator;
           rse = poissonRse(numerator);
         } else {
           // rate, ratio, index, density
-          const rate = ind.gen.base * Math.exp(drive) * trendFactor * monthly * rateScale;
+          const rate = ind.gen.base * Math.exp(drive) * trendFactor * periodFactor * rateScale;
           if (ind.gen.countBased) {
             numerator = poisson((rate / mult) * exposure, periodRand);
             value = displayDenom > 0 ? (numerator / displayDenom) * mult : null;

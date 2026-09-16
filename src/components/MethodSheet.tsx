@@ -78,39 +78,47 @@ export function MethodSheet({ open, onClose }: { open: boolean; onClose: () => v
             honestly rather than mocked up.
           </li>
           <li>
-            <strong>Month-to-month movement.</strong> Seasonality whose peak arrives at different
-            times in different places, so the monthly map shows a changing geographic pattern
-            rather than the whole country brightening at once.
+            <strong>Week-to-week movement.</strong> Seasonality whose peak arrives at different
+            times in different places, so the map shows a changing geographic pattern rather than
+            the whole country brightening at once.
           </li>
         </ul>
 
-        <h4>Monthly time steps</h4>
+        <h4>Weekly time steps</h4>
         <p>
-          The timeline runs monthly from January 2024 to December 2025. Playback steps whole
-          months and nothing is interpolated between them: a value halfway between March and April
-          does not exist, so drawing one would be an invention. Colours jump from one month's value
-          to the next.
+          The timeline runs weekly from 2 January 2023 to 22 December 2025 — 156 reporting weeks,
+          labelled by ISO week number. Playback steps whole weeks and nothing is interpolated
+          between them: a value halfway between two reporting weeks does not exist, so drawing one
+          would be an invention. Colours jump from one week's value to the next.
         </p>
         <p>
           <strong>Class breaks are fixed across the whole timeline</strong>, computed once over every
-          month in view rather than per frame. If they were recalculated each month the palette
-          would be recalibrated on every step and an area could change shade while its value stood
-          still. The consequence is intentional: in a low month most of the map is pale, and in a
-          peak month most of it is dark, because the colours mean the same thing throughout.
+          week in view rather than per frame. If they were recalculated each week the palette would
+          be recalibrated on every step and an area could change shade while its value stood still.
+          The consequence is intentional: in a quiet week most of the map is pale, and at the
+          seasonal peak most of it is dark, because the colours mean the same thing throughout.
         </p>
         <p>
           Flow measures — consultations, notifications, births — are defined per year in the
-          catalogue and divided into months. Stock measures — coverage, prevalence, workforce
-          ratios — are levels and are not divided. Monthly counts are necessarily smaller than
-          annual ones, so disclosure suppression bites harder: a rare condition that was readable
-          as an annual municipal rate may be almost entirely withheld monthly. The page says so and
-          offers the province level, where pooling makes the measure usable again.
+          catalogue and scaled to the week. Stock measures — coverage, prevalence, workforce ratios
+          — are levels and are not scaled. A week's counts are roughly a fifty-second of a year's,
+          so disclosure suppression bites hard: at municipal level many indicators are almost
+          entirely withheld, and several are readable only at province level. The page says so on
+          the map and offers the province level, where pooling makes the measure usable again.
         </p>
         <p>
-          Month-to-month movement comes from two things: seasonality whose peak arrives at
-          different times in different places, and a slow-drifting regional anomaly field. Neither
-          models disease transmission. Nothing travels from one area to a neighbour — it is
-          time-varying spatial structure, not diffusion, and it should not be read as spread.
+          <strong>Read week-to-week jumps with care.</strong> At weekly granularity a large share of
+          the change between consecutive frames is sampling noise rather than signal — a small area
+          with eight cases one week and fourteen the next has not necessarily changed. The seasonal
+          shape across many weeks is the trustworthy part; a single step is not. Reliability flags
+          in the detail panel mark the estimates that are too unstable to act on.
+        </p>
+        <p>
+          Movement over time comes from two things: seasonality whose peak arrives at different
+          times in different places, and a slow-drifting regional anomaly with a correlation time of
+          about three months. Neither models disease transmission. Nothing travels from one area to
+          a neighbour — it is time-varying spatial structure, not diffusion, and it should not be
+          read as spread.
         </p>
 
         <h4>Aggregation</h4>

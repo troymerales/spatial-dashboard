@@ -111,7 +111,7 @@ export function ControlRail({
 
         <div className="field">
           <label className="field__label" htmlFor="ctl-period">
-            Month
+            Week
           </label>
           <select
             id="ctl-period"
@@ -208,7 +208,7 @@ export function ControlRail({
             </select>
             <p className="field__hint">{methodNote}</p>
             <p className="field__hint">
-              Breaks are computed once over <strong>every month</strong> of the timeline, so colours
+              Breaks are computed once over <strong>every week</strong> of the timeline, so colours
               stay comparable as the animation plays. They are recomputed when you filter to a
               region, since that changes which areas are in view.
             </p>

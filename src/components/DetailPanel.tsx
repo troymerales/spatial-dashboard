@@ -307,8 +307,8 @@ export function DetailPanel({
         </h3>
         <Sparkline points={analysis.series} indicator={indicator} width={296} height={46} />
         <p className="field__hint">
-          Synthetic monthly series, {analysis.series.length} months. Month-to-month movement in a
-          small area is mostly sampling noise — read the shape, not the steps.
+          Synthetic weekly series, {analysis.series.length} weeks. Week-to-week movement in a small
+          area is mostly sampling noise — read the shape, not the steps.
         </p>
       </div>
 
