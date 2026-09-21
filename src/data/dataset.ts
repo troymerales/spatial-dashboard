@@ -42,6 +42,15 @@ export interface Dataset {
   surface(indicatorId: string, level: GeoLevel, period: number): IndicatorSurface;
   /** Value for one unit across every period — for the trend sparkline. */
   series(indicatorId: string, level: GeoLevel, pcode: PCode): Array<{ period: number; value: number | null }>;
+  /**
+   * Every finite value for an indicator across the WHOLE timeline, restricted
+   * to the given areas. This is what fixed class breaks are computed from: if
+   * breaks were derived per month the colours would be recalibrated on every
+   * frame and an area could change shade while its value stood still.
+   *
+   * `scopeKey` is only a cache key — it must change whenever `pcodes` does.
+   */
+  pooledValues(indicatorId: string, level: GeoLevel, scopeKey: string, pcodes: Set<PCode>): number[];
   facilityCount(pcode: PCode, level: GeoLevel): number;
 }
 
@@ -100,6 +109,17 @@ function summarise(byPcode: Map<PCode, Observation>): {
     },
   };
 }
+
+/**
+ * Two indicators' worth of weeks across both levels (156 x 2 x 2).
+ *
+ * This MUST stay in step with the engine's own indicator cache. A municipality
+ * surface holds a reference to the engine's period map, so a surface cache
+ * larger than the engine cache pins the very maps the engine just evicted and
+ * nothing is ever actually freed — which is exactly what happened when this was
+ * sized for monthly periods and left alone after the switch to weeks.
+ */
+const MAX_CACHED_SURFACES = 630;
 
 const UNIT_MULT: Record<string, number> = {
   per_1000: 1000,
@@ -320,7 +340,45 @@ export async function buildDataset(signal?: AbortSignal): Promise<Dataset> {
 
     const built: IndicatorSurface = { indicator: ind, level, period, byPcode, values, sorted, stats };
     surfaceCache.set(key, built);
+    // 156 weeks x 2 levels per indicator; bound it so a long session browsing
+    // many indicators cannot pin every surface in memory.
+    while (surfaceCache.size > MAX_CACHED_SURFACES) {
+      const oldest = surfaceCache.keys().next().value;
+      if (oldest === undefined) break;
+      surfaceCache.delete(oldest);
+    }
     return built;
+  };
+
+  const pooledCache = new Map<string, number[]>();
+
+  const pooledValues = (
+    indicatorId: string,
+    level: GeoLevel,
+    scopeKey: string,
+    pcodes: Set<PCode>,
+  ): number[] => {
+    const key = `${indicatorId}|${level}|${scopeKey}`;
+    const hit = pooledCache.get(key);
+    if (hit) return hit;
+
+    const out: number[] = [];
+    for (const period of PERIODS) {
+      const s = surface(indicatorId, level, period);
+      for (const p of pcodes) {
+        const v = s.byPcode.get(p)?.value;
+        if (v != null && Number.isFinite(v)) out.push(v);
+      }
+    }
+    pooledCache.set(key, out);
+    // Each entry is one number per area per period — ~1.4 MB at weekly
+    // granularity — so keep only a handful.
+    while (pooledCache.size > 8) {
+      const oldest = pooledCache.keys().next().value;
+      if (oldest === undefined) break;
+      pooledCache.delete(oldest);
+    }
+    return out;
   };
 
   return {
@@ -333,6 +391,7 @@ export async function buildDataset(signal?: AbortSignal): Promise<Dataset> {
     layer: (level) => (level === 'province' ? province : municipality),
     units: (level) => (level === 'province' ? province.units : municipality.units),
     surface,
+    pooledValues,
     series: (indicatorId, level, pcode) =>
       PERIODS.map((period) => ({
         period,

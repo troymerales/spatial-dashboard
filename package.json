@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -b --noEmit",
+    "catalogue": "node scripts/gen-catalogue.mjs",
+    "check-data": "node scripts/check-data.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.6.0",

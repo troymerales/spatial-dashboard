@@ -10,7 +10,15 @@ import {
 } from '../lib/stats';
 import { formatCount, formatSigned, formatValue, ordinal, shortRegionName } from '../lib/format';
 import { Sparkline } from './charts';
+import { formatPeriod, formatPeriodShort } from '../data/periods';
+
 import { InfoIcon, WarnIcon } from './icons';
+import { DETAIL_SECTIONS } from '../data/ui-taxonomy';
+
+/** Section headings come from the shared taxonomy so the docs cannot drift. */
+const SECTION: Record<string, string> = Object.fromEntries(
+  DETAIL_SECTIONS.map((sec) => [sec.id, sec.title]),
+);
 
 /**
  * What an officer gets after clicking a polygon.
@@ -170,7 +178,7 @@ export function DetailPanel({
           )}
         </div>
         <div className="bignum__label">
-          {indicator.name} · {period}
+          {indicator.name} · {formatPeriod(period)}
         </div>
 
         {obs?.value == null && (
@@ -192,8 +200,8 @@ export function DetailPanel({
               ) : (
                 <>
                   <strong>No report.</strong> This area did not submit data for this indicator in{' '}
-                  {period}. It is drawn as "no report" rather than zero, because those mean very
-                  different things.
+                  {formatPeriod(period)}. It is drawn as "no report" rather than zero, because those
+                  mean very different things.
                 </>
               )}
             </span>
@@ -213,7 +221,7 @@ export function DetailPanel({
 
       {obs?.value != null && (
         <div className="section">
-          <h3 className="section__title">Where this sits</h3>
+          <h3 className="section__title">{SECTION.position}</h3>
           <div className="statgrid">
             <div className="statgrid__cell">
               <div className="statgrid__label">Rank (highest first)</div>
@@ -290,23 +298,23 @@ export function DetailPanel({
 
       <div className="section">
         <h3 className="section__title">
-          Trend
+          {SECTION.trend}
           {analysis.change != null && (
             <span className={`num ${deltaClass(analysis.change)}`} style={{ fontSize: 11 }}>
-              {formatSigned(analysis.change, 1)}% since {analysis.series[0].period}
+              {formatSigned(analysis.change, 1)}% since {formatPeriodShort(analysis.series[0].period)}
             </span>
           )}
         </h3>
         <Sparkline points={analysis.series} indicator={indicator} width={296} height={46} />
         <p className="field__hint">
-          Synthetic series over {analysis.series.length} periods. A short series cannot separate a
-          real trend from ordinary year-to-year noise.
+          Synthetic weekly series, {analysis.series.length} weeks. Week-to-week movement in a small
+          area is mostly sampling noise — read the shape, not the steps.
         </p>
       </div>
 
       {obs != null && (obs.numerator != null || obs.denominator != null) && (
         <div className="section">
-          <h3 className="section__title">How the number is built</h3>
+          <h3 className="section__title">{SECTION.composition}</h3>
           <div className="statgrid">
             <div className="statgrid__cell">
               <div className="statgrid__label">Numerator</div>
@@ -325,12 +333,12 @@ export function DetailPanel({
       )}
 
       <div className="section">
-        <h3 className="section__title">Area context</h3>
+        <h3 className="section__title">{SECTION.context}</h3>
         <div className="statgrid">
           <div className="statgrid__cell">
             <div className="statgrid__label">Population</div>
             <div className="statgrid__value num">{formatCount(analysis.population)}</div>
-            <div className="statgrid__sub">synthetic, {period}</div>
+            <div className="statgrid__sub">synthetic, {formatPeriodShort(period)}</div>
           </div>
           <div className="statgrid__cell">
             <div className="statgrid__label">Land area</div>
@@ -355,7 +363,7 @@ export function DetailPanel({
       </div>
 
       <div className="section">
-        <h3 className="section__title">About this indicator</h3>
+        <h3 className="section__title">{SECTION.about}</h3>
         <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: 'var(--text-2)' }}>
           {indicator.definition}
         </p>

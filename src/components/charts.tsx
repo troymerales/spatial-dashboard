@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Indicator, PCode } from '../types';
 import { classIndex, histogram, quantileSorted } from '../lib/stats';
 import { formatBare, formatValue } from '../lib/format';
+import { formatPeriod, formatPeriodShort } from '../data/periods';
 
 /** Measure a container so SVG charts can size themselves without distortion. */
 export function useSize<T extends HTMLElement>() {
@@ -79,7 +80,7 @@ export function Sparkline({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={`Trend from ${points[0].period} to ${last.period}`}
+      aria-label={`Trend from ${formatPeriod(points[0].period)} to ${formatPeriod(last.period)}`}
     >
       {segments.map((seg, i) => {
         const d = seg.map((p, j) => `${j ? 'L' : 'M'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
@@ -100,14 +101,14 @@ export function Sparkline({
         <circle className="sparkline__dot" cx={x(lastIdx)} cy={y(last.value)} r={2.6} />
       )}
       <text x={pad.l} y={height - 2} textAnchor="start">
-        {points[0].period}
+        {formatPeriodShort(points[0].period)}
       </text>
       <text x={width - pad.r} y={height - 2} textAnchor="end">
-        {last.period}
+        {formatPeriodShort(last.period)}
       </text>
       <title>
         {points
-          .map((p) => `${p.period}: ${p.value == null ? 'no data' : formatValue(p.value, indicator)}`)
+          .map((p) => `${formatPeriodShort(p.period)}: ${p.value == null ? 'no data' : formatValue(p.value, indicator)}`)
           .join('\n')}
       </title>
     </svg>

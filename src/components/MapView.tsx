@@ -48,6 +48,12 @@ export interface MapViewProps {
   highlightPcodes: Set<PCode> | null;
   fitBounds: [number, number, number, number] | null;
   basemap: boolean;
+  /**
+   * Changes whenever the surrounding layout changes size (e.g. panels hidden).
+   * MapLibre observes its container, but an explicit resize removes any doubt
+   * about ordering against React's paint.
+   */
+  resizeKey?: string | number;
   onMapReady?: () => void;
 }
 
@@ -229,6 +235,7 @@ function MapViewImpl(props: MapViewProps) {
     highlightPcodes,
     fitBounds,
     basemap,
+    resizeKey,
     onMapReady,
   } = props;
 
@@ -397,6 +404,19 @@ function MapViewImpl(props: MapViewProps) {
     if (!src) return;
     src.setData((bubbles && bubbles.length ? bubbleFC(bubbles) : EMPTY_FC) as never);
   }, [bubbles, ready]);
+
+  // ── layout changes ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return undefined;
+    // React has already committed the new layout by the time effects run, so a
+    // direct resize is correct — and unlike a rAF callback it still runs when
+    // the tab is backgrounded and frames are throttled. The follow-up frame
+    // catches any layout the browser had not settled yet.
+    map.resize();
+    const raf = requestAnimationFrame(() => map.resize());
+    return () => cancelAnimationFrame(raf);
+  }, [resizeKey, ready]);
 
   // ── camera ──
   useEffect(() => {

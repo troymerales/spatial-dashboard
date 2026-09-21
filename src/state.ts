@@ -1,4 +1,5 @@
 import type { ClassMethod, GeoLevel, PCode } from './types';
+import { LATEST_PERIOD } from './data/periods';
 
 export type ViewId = 'explore' | 'compare' | 'screen' | 'access';
 
@@ -33,6 +34,24 @@ export interface SpatialState {
 
   criteria: Criterion[];
   selectedPcode: PCode | null;
+
+  /**
+   * Each surrounding panel collapses independently, so the map can be given
+   * room without losing whichever panel is still being used.
+   *
+   * Selecting an area reopens `detailHidden` only — that panel exists to
+   * describe the selection. The rail and strip stay exactly as they were set,
+   * because reopening everything on every click would make these toggles
+   * pointless.
+   */
+  railHidden: boolean;
+  detailHidden: boolean;
+  stripHidden: boolean;
+
+  /** Timeline playback. Steps whole weeks; nothing is interpolated between them. */
+  playing: boolean;
+  /** Milliseconds each week is held on screen. */
+  playSpeedMs: number;
 }
 
 export const VIEWS: Array<{ id: ViewId; label: string; question: string }> = [
@@ -61,7 +80,7 @@ export const VIEWS: Array<{ id: ViewId; label: string; question: string }> = [
 export const INITIAL_STATE: SpatialState = {
   view: 'explore',
   level: 'province',
-  period: 2025,
+  period: LATEST_PERIOD,
 
   indicatorId: 'util_outpatient_rate',
   compareXId: 'ncd_screening_coverage',
@@ -85,4 +104,9 @@ export const INITIAL_STATE: SpatialState = {
     { id: 'c3', indicatorId: 'acc_nearest_inpatient_km', op: 'gte', threshold: 12 },
   ],
   selectedPcode: null,
+  railHidden: false,
+  detailHidden: false,
+  stripHidden: false,
+  playing: false,
+  playSpeedMs: 300,
 };
